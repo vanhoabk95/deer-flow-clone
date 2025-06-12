@@ -36,7 +36,21 @@ const config = {
   },
 
   // ... rest of the configuration.
-  output: "standalone",
+  output: process.env.TAURI_BUILD ? "export" : "standalone",
+  trailingSlash: process.env.TAURI_BUILD ? true : false,
+  distDir: process.env.TAURI_BUILD ? "out" : ".next",
+  assetPrefix: process.env.TAURI_BUILD ? "" : undefined,
+  images: {
+    unoptimized: process.env.TAURI_BUILD ? true : false,
+  },
+  typescript: {
+    // Skip TypeScript checking during Tauri build to avoid webpack chunk issues
+    ignoreBuildErrors: process.env.TAURI_BUILD ? true : false,
+  },
+  eslint: {
+    // Skip ESLint during Tauri build to speed up the process
+    ignoreDuringBuilds: process.env.TAURI_BUILD ? true : false,
+  },
 };
 
 export default config;
