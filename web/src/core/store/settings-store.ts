@@ -3,7 +3,26 @@
 
 import { create } from "zustand";
 
-import type { MCPServerMetadata, SimpleMCPServerMetadata } from "../mcp";
+// Define MCP types locally since the mcp module is empty
+interface MCPServerMetadata {
+  name: string;
+  enabled: boolean;
+  transport: string;
+  env?: Record<string, string>;
+  command?: string;
+  args?: string[];
+  url?: string;
+  tools: Array<{ name: string }>;
+}
+
+interface SimpleMCPServerMetadata {
+  name: string;
+  transport: string;
+  env?: Record<string, string>;
+  command?: string;
+  args?: string[];
+  url?: string;
+}
 
 const SETTINGS_KEY = "deerflow.settings";
 

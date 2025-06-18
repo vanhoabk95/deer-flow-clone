@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-import { chatStream, generatePodcast } from "../api";
+import { chatStream } from "../api";
+// import { generatePodcast } from "../api";  // Podcast removed
 import type { Message, Resource } from "../messages";
 import { mergeMessage } from "../messages";
 import { parseJSON } from "../utils";
@@ -98,7 +99,7 @@ export async function sendMessage(
 
   const settings = getChatStreamSettings();
   const stream = chatStream(
-    content ?? "[REPLAY]",
+    content ?? "",
     {
       thread_id: THREAD_ID,
       interrupt_feedback: interruptFeedback,
@@ -275,67 +276,67 @@ export function closeResearch() {
   useStore.getState().closeResearch();
 }
 
-export async function listenToPodcast(researchId: string) {
-  const planMessageId = useStore.getState().researchPlanIds.get(researchId);
-  const reportMessageId = useStore.getState().researchReportIds.get(researchId);
-  if (planMessageId && reportMessageId) {
-    const planMessage = getMessage(planMessageId)!;
-    const title = parseJSON(planMessage.content, { title: "Untitled" }).title;
-    const reportMessage = getMessage(reportMessageId);
-    if (reportMessage?.content) {
-      appendMessage({
-        id: nanoid(),
-        threadId: THREAD_ID,
-        role: "user",
-        content: "Please generate a podcast for the above research.",
-        contentChunks: [],
-      });
-      const podCastMessageId = nanoid();
-      const podcastObject = { title, researchId };
-      const podcastMessage: Message = {
-        id: podCastMessageId,
-        threadId: THREAD_ID,
-        role: "assistant",
-        agent: "podcast",
-        content: JSON.stringify(podcastObject),
-        contentChunks: [],
-        reasoningContent: "",
-        reasoningContentChunks: [],
-        isStreaming: true,
-      };
-      appendMessage(podcastMessage);
-      // Generating podcast...
-      let audioUrl: string | undefined;
-      try {
-        audioUrl = await generatePodcast(reportMessage.content);
-      } catch (e) {
-        console.error(e);
-        useStore.setState((state) => ({
-          messages: new Map(useStore.getState().messages).set(
-            podCastMessageId,
-            {
-              ...state.messages.get(podCastMessageId)!,
-              content: JSON.stringify({
-                ...podcastObject,
-                error: e instanceof Error ? e.message : "Unknown error",
-              }),
-              isStreaming: false,
-            },
-          ),
-        }));
-        toast("An error occurred while generating podcast. Please try again.");
-        return;
-      }
-      useStore.setState((state) => ({
-        messages: new Map(useStore.getState().messages).set(podCastMessageId, {
-          ...state.messages.get(podCastMessageId)!,
-          content: JSON.stringify({ ...podcastObject, audioUrl }),
-          isStreaming: false,
-        }),
-      }));
-    }
-  }
-}
+// export async function listenToPodcast(researchId: string) {  // Podcast removed
+//   const planMessageId = useStore.getState().researchPlanIds.get(researchId);
+//   const reportMessageId = useStore.getState().researchReportIds.get(researchId);
+//   if (planMessageId && reportMessageId) {
+//     const planMessage = getMessage(planMessageId)!;
+//     const title = parseJSON(planMessage.content, { title: "Untitled" }).title;
+//     const reportMessage = getMessage(reportMessageId);
+//     if (reportMessage?.content) {
+//       appendMessage({
+//         id: nanoid(),
+//         threadId: THREAD_ID,
+//         role: "user",
+//         content: "Please generate a podcast for the above research.",
+//         contentChunks: [],
+//       });
+//       const podCastMessageId = nanoid();
+//       const podcastObject = { title, researchId };
+//       const podcastMessage: Message = {
+//         id: podCastMessageId,
+//         threadId: THREAD_ID,
+//         role: "assistant",
+//         agent: "podcast",
+//         content: JSON.stringify(podcastObject),
+//         contentChunks: [],
+//         reasoningContent: "",
+//         reasoningContentChunks: [],
+//         isStreaming: true,
+//       };
+//       appendMessage(podcastMessage);
+//       // Generating podcast...
+//       let audioUrl: string | undefined;
+//       try {
+//         audioUrl = await generatePodcast(reportMessage.content);
+//       } catch (e) {
+//         console.error(e);
+//         useStore.setState((state) => ({
+//           messages: new Map(useStore.getState().messages).set(
+//             podCastMessageId,
+//             {
+//               ...state.messages.get(podCastMessageId)!,
+//               content: JSON.stringify({
+//                 ...podcastObject,
+//                 error: e instanceof Error ? e.message : "Unknown error",
+//               }),
+//               isStreaming: false,
+//             },
+//           ),
+//         }));
+//         toast("An error occurred while generating podcast. Please try again.");
+//         return;
+//       }
+//       useStore.setState((state) => ({
+//         messages: new Map(useStore.getState().messages).set(podCastMessageId, {
+//           ...state.messages.get(podCastMessageId)!,
+//           content: JSON.stringify({ ...podcastObject, audioUrl }),
+//           isStreaming: false,
+//         }),
+//       }));
+//     }
+//   }
+// }
 
 export function useResearchMessage(researchId: string) {
   return useStore(

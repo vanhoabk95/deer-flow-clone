@@ -38,8 +38,7 @@ export const env = createEnv({
     GITHUB_OAUTH_TOKEN: process.env.GITHUB_OAUTH_TOKEN,
   },
   /**
-   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
-   * useful for Docker builds.
+   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
    */
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   /**

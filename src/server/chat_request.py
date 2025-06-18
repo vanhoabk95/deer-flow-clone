@@ -53,9 +53,14 @@ class ChatRequest(BaseModel):
     interrupt_feedback: Optional[str] = Field(
         None, description="Interrupt feedback from the user on the plan"
     )
-    mcp_settings: Optional[dict] = Field(
-        None, description="MCP settings for the chat request"
-    )
+    # mcp_settings: Optional[dict] = Field(
+    #     None, description="MCP settings for the chat request"
+    # )  # Removed MCP settings
+    
+    @property
+    def mcp_settings(self) -> dict:
+        """Return empty dict for backward compatibility."""
+        return {}
     enable_background_investigation: Optional[bool] = Field(
         True, description="Whether to get background investigation before plan"
     )
@@ -67,28 +72,28 @@ class ChatRequest(BaseModel):
     )
 
 
-class TTSRequest(BaseModel):
-    text: str = Field(..., description="The text to convert to speech")
-    voice_type: Optional[str] = Field(
-        "BV700_V2_streaming", description="The voice type to use"
-    )
-    encoding: Optional[str] = Field("mp3", description="The audio encoding format")
-    speed_ratio: Optional[float] = Field(1.0, description="Speech speed ratio")
-    volume_ratio: Optional[float] = Field(1.0, description="Speech volume ratio")
-    pitch_ratio: Optional[float] = Field(1.0, description="Speech pitch ratio")
-    text_type: Optional[str] = Field("plain", description="Text type (plain or ssml)")
-    with_frontend: Optional[int] = Field(
-        1, description="Whether to use frontend processing"
-    )
-    frontend_type: Optional[str] = Field("unitTson", description="Frontend type")
+# class TTSRequest(BaseModel):  # TTS removed
+#     text: str = Field(..., description="The text to convert to speech")
+#     voice_type: Optional[str] = Field(
+#         "BV700_V2_streaming", description="The voice type to use"
+#     )
+#     encoding: Optional[str] = Field("mp3", description="The audio encoding format")
+#     speed_ratio: Optional[float] = Field(1.0, description="Speech speed ratio")
+#     volume_ratio: Optional[float] = Field(1.0, description="Speech volume ratio")
+#     pitch_ratio: Optional[float] = Field(1.0, description="Speech pitch ratio")
+#     text_type: Optional[str] = Field("plain", description="Text type (plain or ssml)")
+#     with_frontend: Optional[int] = Field(
+#         1, description="Whether to use frontend processing"
+#     )
+#     frontend_type: Optional[str] = Field("unitTson", description="Frontend type")
 
 
-class GeneratePodcastRequest(BaseModel):
-    content: str = Field(..., description="The content of the podcast")
+# class GeneratePodcastRequest(BaseModel):  # Podcast removed
+#     content: str = Field(..., description="The content of the podcast")
 
 
-class GeneratePPTRequest(BaseModel):
-    content: str = Field(..., description="The content of the ppt")
+# class GeneratePPTRequest(BaseModel):  # PPT removed
+#     content: str = Field(..., description="The content of the ppt")
 
 
 class GenerateProseRequest(BaseModel):
@@ -99,11 +104,11 @@ class GenerateProseRequest(BaseModel):
     )
 
 
-class EnhancePromptRequest(BaseModel):
-    prompt: str = Field(..., description="The original prompt to enhance")
-    context: Optional[str] = Field(
-        "", description="Additional context about the intended use"
-    )
-    report_style: Optional[str] = Field(
-        "academic", description="The style of the report"
-    )
+# class EnhancePromptRequest(BaseModel):  # Prompt enhancer removed
+#     prompt: str = Field(..., description="The original prompt to enhance")
+#     context: Optional[str] = Field(
+#         "", description="Additional context about the intended use"
+#     )
+#     report_style: Optional[str] = Field(
+#         "academic", description="The style of the report"
+#     )

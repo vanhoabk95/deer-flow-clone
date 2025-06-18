@@ -21,10 +21,10 @@ from langchain_core.messages import AIMessageChunk
 from src.server.chat_request import (
     ChatRequest,
     # TTSRequest,  # TTS removed
-    # GeneratePodcastRequest,  # Podcast removed
-    # GeneratePPTRequest,  # PPT removed
+    GeneratePodcastRequest,
+    GeneratePPTRequest,
     GenerateProseRequest,
-    # EnhancePromptRequest,  # Prompt enhancer removed
+    EnhancePromptRequest,
 )
 
 
@@ -60,225 +60,216 @@ class TestMakeEvent:
         assert result == expected
 
 
-## class TestTTSEndpoint:  # TTS tests removed
-#    @patch.dict(
-#        os.environ,
-#        {
-#            "VOLCENGINE_TTS_APPID": "test_app_id",
-#            "VOLCENGINE_TTS_ACCESS_TOKEN": "test_token",
-#            "VOLCENGINE_TTS_CLUSTER": "test_cluster",
-#            "VOLCENGINE_TTS_VOICE_TYPE": "test_voice",
-#        },
-#    )
-#    @patch("src.server.app.VolcengineTTS")
-#    def test_tts_success(self, mock_tts_class, client):
-#        mock_tts_instance = MagicMock()
-#        mock_tts_class.return_value = mock_tts_instance
-#
-#        # Mock successful TTS response
-#        audio_data_b64 = base64.b64encode(b"fake_audio_data").decode()
-#        mock_tts_instance.text_to_speech.return_value = {
-#            "success": True,
-#            "audio_data": audio_data_b64,
-#        }
-#
-#        request_data = {
-#            "text": "Hello world",
-#            "encoding": "mp3",
-#            "speed_ratio": 1.0,
-#            "volume_ratio": 1.0,
-#            "pitch_ratio": 1.0,
-#            "text_type": "plain",
-#            "with_frontend": True,
-#            "frontend_type": "unitTson",
-#        }
-#
-#        response = client.post("/api/tts", json=request_data)
-#
-#        assert response.status_code == 200
-#        assert response.headers["content-type"] == "audio/mp3"
-#        assert b"fake_audio_data" in response.content
-#
-#    @patch.dict(os.environ, {}, clear=True)
-#    def test_tts_missing_app_id(self, client):
-#        request_data = {"text": "Hello world", "encoding": "mp3"}
-#
-#        response = client.post("/api/tts", json=request_data)
-#
-#        assert response.status_code == 400
-#        assert "VOLCENGINE_TTS_APPID is not set" in response.json()["detail"]
-#
-#    @patch.dict(
-#        os.environ,
-#        {"VOLCENGINE_TTS_APPID": "test_app_id", "VOLCENGINE_TTS_ACCESS_TOKEN": ""},
-#    )
-#    def test_tts_missing_access_token(self, client):
-#        request_data = {"text": "Hello world", "encoding": "mp3"}
-#
-#        response = client.post("/api/tts", json=request_data)
-#
-#        assert response.status_code == 400
-#        assert "VOLCENGINE_TTS_ACCESS_TOKEN is not set" in response.json()["detail"]
-#
-#    @patch.dict(
-#        os.environ,
-#        {
-#            "VOLCENGINE_TTS_APPID": "test_app_id",
-#            "VOLCENGINE_TTS_ACCESS_TOKEN": "test_token",
-#        },
-#    )
-#    @patch("src.server.app.VolcengineTTS")
-#    def test_tts_api_error(self, mock_tts_class, client):
-#        mock_tts_instance = MagicMock()
-#        mock_tts_class.return_value = mock_tts_instance
-#
-#        # Mock TTS error response
-#        mock_tts_instance.text_to_speech.return_value = {
-#            "success": False,
-#            "error": "TTS API error",
-#        }
-#
-#        request_data = {"text": "Hello world", "encoding": "mp3"}
-#
-#        response = client.post("/api/tts", json=request_data)
-#
-#        assert response.status_code == 500
-#        assert "Internal Server Error" in response.json()["detail"]
-#
-#    @pytest.mark.skip(reason="TTS server exception is catched")
-#    @patch("src.server.app.VolcengineTTS")
-#    def test_tts_api_exception(self, mock_tts_class, client):
-#        mock_tts_instance = MagicMock()
-#        mock_tts_class.return_value = mock_tts_instance
-#
-#        # Mock TTS error response
-#        mock_tts_instance.side_effect = Exception("TTS API error")
-#
-#        request_data = {"text": "Hello world", "encoding": "mp3"}
-#
-#        response = client.post("/api/tts", json=request_data)
-#
-#        assert response.status_code == 500
-#        assert "Internal Server Error" in response.json()["detail"]
-#
-#
-# class TestPodcastEndpoint:  # Podcast tests removed
-#     @patch("src.server.app.build_podcast_graph")
-#     def test_generate_podcast_success(self, mock_build_graph, client):
-#         mock_workflow = MagicMock()
-#         mock_build_graph.return_value = mock_workflow
-#         
-#         # Mock script with lines
-#         mock_line = MagicMock()
-#         mock_line.speaker = "male"
-#         mock_line.text = "Hello world"
-#         mock_script = MagicMock()
-#         mock_script.lines = [mock_line]
-#         mock_workflow.invoke.return_value = {"script": mock_script}
+# class TestTTSEndpoint:  # TTS tests removed
+    @patch.dict(
+        os.environ,
+        {
+            "VOLCENGINE_TTS_APPID": "test_app_id",
+            "VOLCENGINE_TTS_ACCESS_TOKEN": "test_token",
+            "VOLCENGINE_TTS_CLUSTER": "test_cluster",
+            "VOLCENGINE_TTS_VOICE_TYPE": "test_voice",
+        },
+    )
+    @patch("src.server.app.VolcengineTTS")
+    def test_tts_success(self, mock_tts_class, client):
+        mock_tts_instance = MagicMock()
+        mock_tts_class.return_value = mock_tts_instance
 
-#         request_data = {"content": "Test content for podcast"}
+        # Mock successful TTS response
+        audio_data_b64 = base64.b64encode(b"fake_audio_data").decode()
+        mock_tts_instance.text_to_speech.return_value = {
+            "success": True,
+            "audio_data": audio_data_b64,
+        }
 
-#         response = client.post("/api/podcast/generate", json=request_data)
+        request_data = {
+            "text": "Hello world",
+            "encoding": "mp3",
+            "speed_ratio": 1.0,
+            "volume_ratio": 1.0,
+            "pitch_ratio": 1.0,
+            "text_type": "plain",
+            "with_frontend": True,
+            "frontend_type": "unitTson",
+        }
 
-#         assert response.status_code == 200
-#         assert response.headers["content-type"] == "application/json"
-#         response_data = response.json()
-#         assert "script" in response_data
-#         assert "Podcast script generated" in response_data["message"]
+        response = client.post("/api/tts", json=request_data)
 
-#     @patch("src.server.app.build_podcast_graph")
-#     def test_generate_podcast_error(self, mock_build_graph, client):
-#         mock_build_graph.side_effect = Exception("Podcast generation failed")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "audio/mp3"
+        assert b"fake_audio_data" in response.content
 
-#         request_data = {"content": "Test content"}
+    @patch.dict(os.environ, {}, clear=True)
+    def test_tts_missing_app_id(self, client):
+        request_data = {"text": "Hello world", "encoding": "mp3"}
 
-#         response = client.post("/api/podcast/generate", json=request_data)
+        response = client.post("/api/tts", json=request_data)
 
-#         assert response.status_code == 500
-#         assert response.json()["detail"] == "Internal Server Error"
+        assert response.status_code == 400
+        assert "VOLCENGINE_TTS_APPID is not set" in response.json()["detail"]
+
+    @patch.dict(
+        os.environ,
+        {"VOLCENGINE_TTS_APPID": "test_app_id", "VOLCENGINE_TTS_ACCESS_TOKEN": ""},
+    )
+    def test_tts_missing_access_token(self, client):
+        request_data = {"text": "Hello world", "encoding": "mp3"}
+
+        response = client.post("/api/tts", json=request_data)
+
+        assert response.status_code == 400
+        assert "VOLCENGINE_TTS_ACCESS_TOKEN is not set" in response.json()["detail"]
+
+    @patch.dict(
+        os.environ,
+        {
+            "VOLCENGINE_TTS_APPID": "test_app_id",
+            "VOLCENGINE_TTS_ACCESS_TOKEN": "test_token",
+        },
+    )
+    @patch("src.server.app.VolcengineTTS")
+    def test_tts_api_error(self, mock_tts_class, client):
+        mock_tts_instance = MagicMock()
+        mock_tts_class.return_value = mock_tts_instance
+
+        # Mock TTS error response
+        mock_tts_instance.text_to_speech.return_value = {
+            "success": False,
+            "error": "TTS API error",
+        }
+
+        request_data = {"text": "Hello world", "encoding": "mp3"}
+
+        response = client.post("/api/tts", json=request_data)
+
+        assert response.status_code == 500
+        assert "Internal Server Error" in response.json()["detail"]
+
+    @pytest.mark.skip(reason="TTS server exception is catched")
+    @patch("src.server.app.VolcengineTTS")
+    def test_tts_api_exception(self, mock_tts_class, client):
+        mock_tts_instance = MagicMock()
+        mock_tts_class.return_value = mock_tts_instance
+
+        # Mock TTS error response
+        mock_tts_instance.side_effect = Exception("TTS API error")
+
+        request_data = {"text": "Hello world", "encoding": "mp3"}
+
+        response = client.post("/api/tts", json=request_data)
+
+        assert response.status_code == 500
+        assert "Internal Server Error" in response.json()["detail"]
 
 
-# class TestPPTEndpoint:  # PPT tests removed
-#     @patch("src.server.app.build_ppt_graph")
-#     @patch("builtins.open", new_callable=mock_open, read_data=b"fake_ppt_data")
-#     def test_generate_ppt_success(self, mock_file, mock_build_graph, client):
-#         mock_workflow = MagicMock()
-#         mock_build_graph.return_value = mock_workflow
-#         mock_workflow.invoke.return_value = {
-#             "generated_file_path": "/fake/path/test.pptx"
-#         }
+class TestPodcastEndpoint:
+    @patch("src.server.app.build_podcast_graph")
+    def test_generate_podcast_success(self, mock_build_graph, client):
+        mock_workflow = MagicMock()
+        mock_build_graph.return_value = mock_workflow
+        mock_workflow.invoke.return_value = {"output": b"fake_audio_data"}
 
-#         request_data = {"content": "Test content for PPT"}
+        request_data = {"content": "Test content for podcast"}
 
-#         response = client.post("/api/ppt/generate", json=request_data)
+        response = client.post("/api/podcast/generate", json=request_data)
 
-#         assert response.status_code == 200
-#         assert (
-#             "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-#             in response.headers["content-type"]
-#         )
-#         assert response.content == b"fake_ppt_data"
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "audio/mp3"
+        assert response.content == b"fake_audio_data"
 
-#     @patch("src.server.app.build_ppt_graph")
-#     def test_generate_ppt_error(self, mock_build_graph, client):
-#         mock_build_graph.side_effect = Exception("PPT generation failed")
+    @patch("src.server.app.build_podcast_graph")
+    def test_generate_podcast_error(self, mock_build_graph, client):
+        mock_build_graph.side_effect = Exception("Podcast generation failed")
 
-#         request_data = {"content": "Test content"}
+        request_data = {"content": "Test content"}
 
-#         response = client.post("/api/ppt/generate", json=request_data)
+        response = client.post("/api/podcast/generate", json=request_data)
 
-#         assert response.status_code == 500
-#         assert response.json()["detail"] == "Internal Server Error"
+        assert response.status_code == 500
+        assert response.json()["detail"] == "Internal Server Error"
 
 
-# class TestEnhancePromptEndpoint:  # Prompt enhancer tests removed
-#     @patch("src.server.app.build_prompt_enhancer_graph")
-#     def test_enhance_prompt_success(self, mock_build_graph, client):
-#         mock_workflow = MagicMock()
-#         mock_build_graph.return_value = mock_workflow
-#         mock_workflow.invoke.return_value = {"output": "Enhanced prompt"}
+class TestPPTEndpoint:
+    @patch("src.server.app.build_ppt_graph")
+    @patch("builtins.open", new_callable=mock_open, read_data=b"fake_ppt_data")
+    def test_generate_ppt_success(self, mock_file, mock_build_graph, client):
+        mock_workflow = MagicMock()
+        mock_build_graph.return_value = mock_workflow
+        mock_workflow.invoke.return_value = {
+            "generated_file_path": "/fake/path/test.pptx"
+        }
 
-#         request_data = {
-#             "prompt": "Original prompt",
-#             "context": "Some context",
-#             "report_style": "academic",
-#         }
+        request_data = {"content": "Test content for PPT"}
 
-#         response = client.post("/api/prompt/enhance", json=request_data)
+        response = client.post("/api/ppt/generate", json=request_data)
 
-#         assert response.status_code == 200
-#         assert response.json()["result"] == "Enhanced prompt"
+        assert response.status_code == 200
+        assert (
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            in response.headers["content-type"]
+        )
+        assert response.content == b"fake_ppt_data"
 
-#     @patch("src.server.app.build_prompt_enhancer_graph")
-#     def test_enhance_prompt_with_different_styles(self, mock_build_graph, client):
-#         mock_workflow = MagicMock()
-#         mock_build_graph.return_value = mock_workflow
-#         mock_workflow.invoke.return_value = {"output": "Enhanced prompt"}
+    @patch("src.server.app.build_ppt_graph")
+    def test_generate_ppt_error(self, mock_build_graph, client):
+        mock_build_graph.side_effect = Exception("PPT generation failed")
 
-#         styles = [
-#             "ACADEMIC",
-#             "popular_science",
-#             "NEWS",
-#             "social_media",
-#             "invalid_style",
-#         ]
+        request_data = {"content": "Test content"}
 
-#         for style in styles:
-#             request_data = {"prompt": "Test prompt", "report_style": style}
+        response = client.post("/api/ppt/generate", json=request_data)
 
-#             response = client.post("/api/prompt/enhance", json=request_data)
-#             assert response.status_code == 200
+        assert response.status_code == 500
+        assert response.json()["detail"] == "Internal Server Error"
 
-#     @patch("src.server.app.build_prompt_enhancer_graph")
-#     def test_enhance_prompt_error(self, mock_build_graph, client):
-#         mock_build_graph.side_effect = Exception("Enhancement failed")
 
-#         request_data = {"prompt": "Test prompt"}
+class TestEnhancePromptEndpoint:
+    @patch("src.server.app.build_prompt_enhancer_graph")
+    def test_enhance_prompt_success(self, mock_build_graph, client):
+        mock_workflow = MagicMock()
+        mock_build_graph.return_value = mock_workflow
+        mock_workflow.invoke.return_value = {"output": "Enhanced prompt"}
 
-#         response = client.post("/api/prompt/enhance", json=request_data)
+        request_data = {
+            "prompt": "Original prompt",
+            "context": "Some context",
+            "report_style": "academic",
+        }
 
-#         assert response.status_code == 500
-#         assert response.json()["detail"] == "Internal Server Error"
+        response = client.post("/api/prompt/enhance", json=request_data)
+
+        assert response.status_code == 200
+        assert response.json()["result"] == "Enhanced prompt"
+
+    @patch("src.server.app.build_prompt_enhancer_graph")
+    def test_enhance_prompt_with_different_styles(self, mock_build_graph, client):
+        mock_workflow = MagicMock()
+        mock_build_graph.return_value = mock_workflow
+        mock_workflow.invoke.return_value = {"output": "Enhanced prompt"}
+
+        styles = [
+            "ACADEMIC",
+            "popular_science",
+            "NEWS",
+            "social_media",
+            "invalid_style",
+        ]
+
+        for style in styles:
+            request_data = {"prompt": "Test prompt", "report_style": style}
+
+            response = client.post("/api/prompt/enhance", json=request_data)
+            assert response.status_code == 200
+
+    @patch("src.server.app.build_prompt_enhancer_graph")
+    def test_enhance_prompt_error(self, mock_build_graph, client):
+        mock_build_graph.side_effect = Exception("Enhancement failed")
+
+        request_data = {"prompt": "Test prompt"}
+
+        response = client.post("/api/prompt/enhance", json=request_data)
+
+        assert response.status_code == 500
+        assert response.json()["detail"] == "Internal Server Error"
 
 
 # class TestMCPEndpoint:  # MCP endpoint tests removed

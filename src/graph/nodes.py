@@ -10,7 +10,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from langgraph.types import Command, interrupt
-from langchain_mcp_adapters.client import MultiServerMCPClient
+# from langchain_mcp_adapters.client import MultiServerMCPClient  # Removed MCP import
 
 from src.agents import create_agent
 from src.tools.search import LoggedTavilySearch
@@ -422,9 +422,8 @@ async def _setup_and_execute_agent_step(
     """Helper function to set up an agent with appropriate tools and execute a step.
 
     This function handles the common logic for both researcher_node and coder_node:
-    1. Configures MCP servers and tools based on agent type
-    2. Creates an agent with the appropriate tools or uses the default agent
-    3. Executes the agent on the current step
+    1. Creates an agent with the default tools (MCP support removed)
+    2. Executes the agent on the current step
 
     Args:
         state: The current state
@@ -435,41 +434,9 @@ async def _setup_and_execute_agent_step(
     Returns:
         Command to update state and go to research_team
     """
-    configurable = Configuration.from_runnable_config(config)
-    mcp_servers = {}
-    enabled_tools = {}
-
-    # Extract MCP server configuration for this agent type
-    if configurable.mcp_settings:
-        for server_name, server_config in configurable.mcp_settings["servers"].items():
-            if (
-                server_config["enabled_tools"]
-                and agent_type in server_config["add_to_agents"]
-            ):
-                mcp_servers[server_name] = {
-                    k: v
-                    for k, v in server_config.items()
-                    if k in ("transport", "command", "args", "url", "env")
-                }
-                for tool_name in server_config["enabled_tools"]:
-                    enabled_tools[tool_name] = server_name
-
-    # Create and execute agent with MCP tools if available
-    if mcp_servers:
-        async with MultiServerMCPClient(mcp_servers) as client:
-            loaded_tools = default_tools[:]
-            for tool in client.get_tools():
-                if tool.name in enabled_tools:
-                    tool.description = (
-                        f"Powered by '{enabled_tools[tool.name]}'.\n{tool.description}"
-                    )
-                    loaded_tools.append(tool)
-            agent = create_agent(agent_type, agent_type, loaded_tools, agent_type)
-            return await _execute_agent_step(state, agent, agent_type)
-    else:
-        # Use default tools if no MCP servers are configured
-        agent = create_agent(agent_type, agent_type, default_tools, agent_type)
-        return await _execute_agent_step(state, agent, agent_type)
+    # MCP functionality removed - just use default tools
+    agent = create_agent(agent_type, agent_type, default_tools, agent_type)
+    return await _execute_agent_step(state, agent, agent_type)
 
 
 async def researcher_node(

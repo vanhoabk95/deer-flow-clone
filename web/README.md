@@ -57,39 +57,7 @@ You can set the `NEXT_PUBLIC_API_URL` environment variable if you're using a dif
 NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
-## Docker
 
-You can also run this project with Docker.
-
-First, you need read the [configuration](#configuration) below. Make sure `.env` file is ready.
-
-Second, to build a Docker image of your own web server:
-
-```bash
-docker build --build-arg NEXT_PUBLIC_API_URL=YOUR_DEER-FLOW_API -t deer-flow-web .
-```
-
-Final, start up a docker container running the web server:
-
-```bash
-# Replace deer-flow-web-app with your preferred container name
-docker run -d -t -p 3000:3000 --env-file .env --name deer-flow-web-app deer-flow-web
-
-# stop the server
-docker stop deer-flow-web-app
-```
-
-### Docker Compose
-
-You can also setup this project with the docker compose:
-
-```bash
-# building docker image
-docker compose build
-
-# start the server
-docker compose up
-```
 
 ## License
 

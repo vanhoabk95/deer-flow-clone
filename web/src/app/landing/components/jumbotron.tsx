@@ -1,7 +1,6 @@
 // Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
-import { GithubFilled } from "@ant-design/icons";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
@@ -45,36 +44,11 @@ export function Jumbotron() {
           podcasts.
         </p>
         <div className="flex gap-6">
-          <Button className="hidden text-lg md:flex md:w-42" size="lg" asChild>
-            <Link
-              target={
-                env.NEXT_PUBLIC_STATIC_WEBSITE_ONLY ? "_blank" : undefined
-              }
-              href={
-                env.NEXT_PUBLIC_STATIC_WEBSITE_ONLY
-                  ? "https://github.com/bytedance/deer-flow"
-                  : "/chat"
-              }
-            >
+          <Button className="text-lg w-42" size="lg" asChild>
+            <Link href="/chat">
               Get Started <ChevronRight />
             </Link>
           </Button>
-          {!env.NEXT_PUBLIC_STATIC_WEBSITE_ONLY && (
-            <Button
-              className="w-42 text-lg"
-              size="lg"
-              variant="outline"
-              asChild
-            >
-              <Link
-                href="https://github.com/bytedance/deer-flow"
-                target="_blank"
-              >
-                <GithubFilled />
-                Learn More
-              </Link>
-            </Button>
-          )}
         </div>
       </div>
       <div className="absolute bottom-8 flex text-xs opacity-50">

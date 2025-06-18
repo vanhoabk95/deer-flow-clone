@@ -49,7 +49,7 @@
             "name": "Python: graph.py",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/ppt/graph/builder.py",
+            // "program": "${workspaceFolder}/src/ppt/graph/builder.py",  // PPT removed
             "console": "integratedTerminal",
             "justMyCode": false,
             "env": {

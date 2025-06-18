@@ -9,8 +9,9 @@ import { Tooltip } from "~/components/deer-flow/tooltip";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { useReplay } from "~/core/replay";
-import { closeResearch, listenToPodcast, useStore } from "~/core/store";
+
+import { closeResearch, useStore } from "~/core/store";
+// import { listenToPodcast } from "~/core/store";  // Podcast removed
 import { cn } from "~/lib/utils";
 
 import { ResearchActivitiesBlock } from "./research-activities-block";
@@ -33,19 +34,19 @@ export function ResearchBlock({
   const reportStreaming = useStore((state) =>
     reportId ? (state.messages.get(reportId)?.isStreaming ?? false) : false,
   );
-  const { isReplay } = useReplay();
+
   useEffect(() => {
     if (hasReport) {
       setActiveTab("report");
     }
   }, [hasReport]);
 
-  const handleGeneratePodcast = useCallback(async () => {
-    if (!researchId) {
-      return;
-    }
-    await listenToPodcast(researchId);
-  }, [researchId]);
+  // const handleGeneratePodcast = useCallback(async () => {  // Podcast removed
+  //   if (!researchId) {
+  //     return;
+  //   }
+  //   await listenToPodcast(researchId);
+  // }, [researchId]);
 
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -108,23 +109,22 @@ export function ResearchBlock({
         <div className="absolute right-4 flex h-9 items-center justify-center">
           {hasReport && !reportStreaming && (
             <>
-              <Tooltip title="Generate podcast">
+              {/* <Tooltip title="Generate podcast">  // Podcast removed
                 <Button
                   className="text-gray-400"
                   size="icon"
                   variant="ghost"
-                  disabled={isReplay}
-                  onClick={handleGeneratePodcast}
+
+                  onClick={() => {}}  // handleGeneratePodcast removed
                 >
                   <Headphones />
                 </Button>
-              </Tooltip>
+              </Tooltip> */}
               <Tooltip title="Edit">
                 <Button
                   className="text-gray-400"
                   size="icon"
                   variant="ghost"
-                  disabled={isReplay}
                   onClick={handleEdit}
                 >
                   {editing ? <Undo2 /> : <Pencil />}
@@ -198,9 +198,17 @@ export function ResearchBlock({
               {reportId && researchId && (
                 <ResearchReportBlock
                   className="mt-4"
-                  researchId={researchId}
-                  messageId={reportId}
-                  editing={editing}
+                  content={useStore.getState().messages.get(reportId)?.content || ""}
+                  isCompleted={!reportStreaming}
+                  onEdit={(content) => {
+                    const message = useStore.getState().messages.get(reportId);
+                    if (message) {
+                      message.content = content;
+                      useStore.setState({
+                        messages: new Map(useStore.getState().messages).set(reportId, message),
+                      });
+                    }
+                  }}
                 />
               )}
             </ScrollContainer>

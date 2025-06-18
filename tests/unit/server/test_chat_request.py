@@ -13,13 +13,13 @@ from src.server.chat_request import (
     ContentItem,
     ChatMessage,
     ChatRequest,
-    TTSRequest,
-    GeneratePodcastRequest,
-    GeneratePPTRequest,
+    # TTSRequest,  # TTS removed
+    # GeneratePodcastRequest,  # Podcast removed
+    # GeneratePPTRequest,  # PPT removed
     GenerateProseRequest,
-    EnhancePromptRequest,
+    # EnhancePromptRequest,  # Prompt enhancer removed
 )
-import src.server.mcp_utils as mcp_utils  # Assuming mcp_utils is the module to test
+# import src.server.mcp_utils as mcp_utils  # MCP module removed
 
 
 def test_content_item_text_and_image():
@@ -59,7 +59,7 @@ def test_chat_request_defaults():
     assert req.max_search_results == 3
     assert req.auto_accepted_plan is False
     assert req.interrupt_feedback is None
-    assert req.mcp_settings is None
+    # assert req.mcp_settings is None  # MCP removed
     assert req.enable_background_investigation is True
     assert req.report_style == ReportStyle.ACADEMIC
 
@@ -79,7 +79,7 @@ def test_chat_request_with_values():
         max_search_results=10,
         auto_accepted_plan=True,
         interrupt_feedback="stop",
-        mcp_settings={"foo": "bar"},
+        # mcp_settings={"foo": "bar"},  # MCP removed
         enable_background_investigation=False,
         report_style="academic",
     )
@@ -91,32 +91,32 @@ def test_chat_request_with_values():
     assert req.max_search_results == 10
     assert req.auto_accepted_plan is True
     assert req.interrupt_feedback == "stop"
-    assert req.mcp_settings == {"foo": "bar"}
+    # assert req.mcp_settings == {"foo": "bar"}  # MCP removed
     assert req.enable_background_investigation is False
     assert req.report_style == ReportStyle.ACADEMIC
 
 
-def test_tts_request_defaults():
-    req = TTSRequest(text="hello")
-    assert req.text == "hello"
-    assert req.voice_type == "BV700_V2_streaming"
-    assert req.encoding == "mp3"
-    assert req.speed_ratio == 1.0
-    assert req.volume_ratio == 1.0
-    assert req.pitch_ratio == 1.0
-    assert req.text_type == "plain"
-    assert req.with_frontend == 1
-    assert req.frontend_type == "unitTson"
+# def test_tts_request_defaults():  # TTS removed
+#     req = TTSRequest(text="hello")
+#     assert req.text == "hello"
+#     assert req.voice_type == "BV700_V2_streaming"
+#     assert req.encoding == "mp3"
+#     assert req.speed_ratio == 1.0
+#     assert req.volume_ratio == 1.0
+#     assert req.pitch_ratio == 1.0
+#     assert req.text_type == "plain"
+#     assert req.with_frontend == 1
+#     assert req.frontend_type == "unitTson"
 
 
-def test_generate_podcast_request():
-    req = GeneratePodcastRequest(content="Podcast content")
-    assert req.content == "Podcast content"
+# def test_generate_podcast_request():  # Podcast removed
+#     req = GeneratePodcastRequest(content="Podcast content")
+#     assert req.content == "Podcast content"
 
 
-def test_generate_ppt_request():
-    req = GeneratePPTRequest(content="PPT content")
-    assert req.content == "PPT content"
+# def test_generate_ppt_request():  # PPT removed
+#     req = GeneratePPTRequest(content="PPT content")
+#     assert req.content == "PPT content"
 
 
 def test_generate_prose_request():
@@ -129,11 +129,11 @@ def test_generate_prose_request():
     assert req2.command == ""
 
 
-def test_enhance_prompt_request_defaults():
-    req = EnhancePromptRequest(prompt="Improve this")
-    assert req.prompt == "Improve this"
-    assert req.context == ""
-    assert req.report_style == "academic"
+# def test_enhance_prompt_request_defaults():  # Prompt enhancer removed
+#     req = EnhancePromptRequest(prompt="Improve this")
+#     assert req.prompt == "Improve this"
+#     assert req.context == ""
+#     assert req.report_style == "academic"
 
 
 def test_content_item_validation_error():
@@ -146,23 +146,23 @@ def test_chat_message_validation_error():
         ChatMessage(role="user")  # missing content
 
 
-def test_tts_request_validation_error():
-    with pytest.raises(ValidationError):
-        TTSRequest()  # missing required 'text'
+# def test_tts_request_validation_error():  # TTS removed
+#     with pytest.raises(ValidationError):
+#         TTSRequest()  # missing required 'text'
 
 
-@pytest.mark.asyncio
-@patch("src.server.mcp_utils._get_tools_from_client_session", new_callable=AsyncMock)
-@patch("src.server.mcp_utils.StdioServerParameters")
-@patch("src.server.mcp_utils.stdio_client")
-async def test_load_mcp_tools_exception_handling(
-    mock_stdio_client, mock_StdioServerParameters, mock_get_tools
-):  # Changed to async def
-    mock_get_tools.side_effect = Exception("unexpected error")
-    mock_StdioServerParameters.return_value = MagicMock()
-    mock_stdio_client.return_value = MagicMock()
+# @pytest.mark.asyncio  # MCP test removed
+# @patch("src.server.mcp_utils._get_tools_from_client_session", new_callable=AsyncMock)
+# @patch("src.server.mcp_utils.StdioServerParameters")
+# @patch("src.server.mcp_utils.stdio_client")
+# async def test_load_mcp_tools_exception_handling(
+#     mock_stdio_client, mock_StdioServerParameters, mock_get_tools
+# ):  # Changed to async def
+#     mock_get_tools.side_effect = Exception("unexpected error")
+#     mock_StdioServerParameters.return_value = MagicMock()
+#     mock_stdio_client.return_value = MagicMock()
 
-    with pytest.raises(HTTPException) as exc:
-        await mcp_utils.load_mcp_tools(server_type="stdio", command="foo")  # Use await
-    assert exc.value.status_code == 500
-    assert "unexpected error" in exc.value.detail
+#     with pytest.raises(HTTPException) as exc:
+#         await mcp_utils.load_mcp_tools(server_type="stdio", command="foo")  # Use await
+#     assert exc.value.status_code == 500
+#     assert "unexpected error" in exc.value.detail

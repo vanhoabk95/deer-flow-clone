@@ -14,7 +14,7 @@ import { ReportStyleDialog } from "~/components/deer-flow/report-style-dialog";
 import { Tooltip } from "~/components/deer-flow/tooltip";
 import { BorderBeam } from "~/components/magicui/border-beam";
 import { Button } from "~/components/ui/button";
-import { enhancePrompt } from "~/core/api";
+// import { enhancePrompt } from "~/core/api";  // Prompt enhancer removed
 import { getConfig } from "~/core/api/config";
 import type { Option, Resource } from "~/core/messages";
 import {
@@ -58,9 +58,9 @@ export function InputBox({
   const inputRef = useRef<MessageInputRef>(null);
   const feedbackRef = useRef<HTMLDivElement>(null);
 
-  // Enhancement state
-  const [isEnhancing, setIsEnhancing] = useState(false);
-  const [isEnhanceAnimating, setIsEnhanceAnimating] = useState(false);
+  // Enhancement state - Prompt enhancer removed
+  // const [isEnhancing, setIsEnhancing] = useState(false);
+  // const [isEnhanceAnimating, setIsEnhanceAnimating] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState("");
 
   const handleSendMessage = useCallback(
@@ -77,49 +77,49 @@ export function InputBox({
             resources,
           });
           onRemoveFeedback?.();
-          // Clear enhancement animation after sending
-          setIsEnhanceAnimating(false);
+          // Clear enhancement animation after sending - Prompt enhancer removed
+          // setIsEnhanceAnimating(false);
         }
       }
     },
     [responding, onCancel, onSend, feedback, onRemoveFeedback],
   );
 
-  const handleEnhancePrompt = useCallback(async () => {
-    if (currentPrompt.trim() === "" || isEnhancing) {
-      return;
-    }
+  // const handleEnhancePrompt = useCallback(async () => {  // Prompt enhancer removed
+  //   if (currentPrompt.trim() === "" || isEnhancing) {
+  //     return;
+  //   }
 
-    setIsEnhancing(true);
-    setIsEnhanceAnimating(true);
+  //   setIsEnhancing(true);
+  //   setIsEnhanceAnimating(true);
 
-    try {
-      const enhancedPrompt = await enhancePrompt({
-        prompt: currentPrompt,
-        report_style: reportStyle.toUpperCase(),
-      });
+  //   try {
+  //     const enhancedPrompt = await enhancePrompt({
+  //       prompt: currentPrompt,
+  //       report_style: reportStyle.toUpperCase(),
+  //     });
 
-      // Add a small delay for better UX
-      await new Promise((resolve) => setTimeout(resolve, 500));
+  //     // Add a small delay for better UX
+  //     await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Update the input with the enhanced prompt with animation
-      if (inputRef.current) {
-        inputRef.current.setContent(enhancedPrompt);
-        setCurrentPrompt(enhancedPrompt);
-      }
+  //     // Update the input with the enhanced prompt with animation
+  //     if (inputRef.current) {
+  //       inputRef.current.setContent(enhancedPrompt);
+  //       setCurrentPrompt(enhancedPrompt);
+  //     }
 
-      // Keep animation for a bit longer to show the effect
-      setTimeout(() => {
-        setIsEnhanceAnimating(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Failed to enhance prompt:", error);
-      setIsEnhanceAnimating(false);
-      // Could add toast notification here
-    } finally {
-      setIsEnhancing(false);
-    }
-  }, [currentPrompt, isEnhancing, reportStyle]);
+  //     // Keep animation for a bit longer to show the effect
+  //     setTimeout(() => {
+  //       setIsEnhanceAnimating(false);
+  //     }, 1000);
+  //   } catch (error) {
+  //     console.error("Failed to enhance prompt:", error);
+  //     setIsEnhanceAnimating(false);
+  //     // Could add toast notification here
+  //   } finally {
+  //     setIsEnhancing(false);
+  //   }
+  // }, [currentPrompt, isEnhancing, reportStyle]);
 
   return (
     <div
@@ -150,7 +150,7 @@ export function InputBox({
               />
             </motion.div>
           )}
-          {isEnhanceAnimating && (
+          {/* {isEnhanceAnimating && (  Prompt enhancer animation removed
             <motion.div
               className="pointer-events-none absolute inset-0 z-20"
               initial={{ opacity: 0 }}
@@ -160,7 +160,7 @@ export function InputBox({
             >
               <div className="relative h-full w-full">
                 {/* Sparkle effect overlay */}
-                <motion.div
+                {/* <motion.div
                   className="absolute inset-0 rounded-[24px] bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10"
                   animate={{
                     background: [
@@ -172,7 +172,7 @@ export function InputBox({
                   transition={{ duration: 2, repeat: Infinity }}
                 />
                 {/* Floating sparkles */}
-                {[...Array(6)].map((_, i) => (
+                {/* {[...Array(6)].map((_, i) => (
                   <motion.div
                     key={i}
                     className="absolute h-2 w-2 rounded-full bg-blue-400"
@@ -194,13 +194,13 @@ export function InputBox({
                 ))}
               </div>
             </motion.div>
-          )}
+          )} */}
         </AnimatePresence>
         <MessageInput
           className={cn(
             "h-24 px-4 pt-5",
             feedback && "pt-9",
-            isEnhanceAnimating && "transition-all duration-500",
+            // isEnhanceAnimating && "transition-all duration-500",  // Prompt enhancer removed
           )}
           ref={inputRef}
           onEnter={handleSendMessage}
@@ -270,7 +270,7 @@ export function InputBox({
           <ReportStyleDialog />
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Tooltip title="Enhance prompt with AI">
+          {/* <Tooltip title="Enhance prompt with AI">  Prompt enhancer removed
             <Button
               variant="ghost"
               size="icon"
@@ -278,7 +278,7 @@ export function InputBox({
                 "hover:bg-accent h-10 w-10",
                 isEnhancing && "animate-pulse",
               )}
-              onClick={handleEnhancePrompt}
+              // onClick={handleEnhancePrompt}  // Prompt enhancer removed
               disabled={isEnhancing || currentPrompt.trim() === ""}
             >
               {isEnhancing ? (
@@ -289,7 +289,7 @@ export function InputBox({
                 <MagicWandIcon className="text-brand" />
               )}
             </Button>
-          </Tooltip>
+          </Tooltip> */}
           <Tooltip title={responding ? "Stop" : "Send"}>
             <Button
               variant="outline"
@@ -308,7 +308,7 @@ export function InputBox({
           </Tooltip>
         </div>
       </div>
-      {isEnhancing && (
+      {/* {isEnhancing && (  Prompt enhancer animation removed
         <>
           <BorderBeam
             duration={5}
@@ -322,7 +322,7 @@ export function InputBox({
             className="from-transparent via-blue-500 to-transparent"
           />
         </>
-      )}
+      )} */}
     </div>
   );
 }

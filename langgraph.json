@@ -1,9 +1,6 @@
 {
-  "dockerfile_lines": [],
   "graphs": {
-    "deep_research": "./src/workflow.py:graph",
-    "podcast_generation": "./src/podcast/graph/builder.py:workflow",
-    "ppt_generation": "./src/ppt/graph/builder.py:workflow"
+        "deep_research": "./src/workflow.py:graph"
   },
   "python_version": "3.12",
   "env": "./.env",

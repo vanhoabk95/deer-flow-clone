@@ -25,17 +25,19 @@ https://github.com/user-attachments/assets/f3786598-1f2a-4d07-919e-8b99dfa1de3e
 
 In this demo, we showcase how to use DeerFlow to:
 
-- Seamlessly integrate with MCP services
+
 - Conduct the Deep Research process and produce a comprehensive report with images
-- Create podcast audio based on the generated report
+<!-- - Create podcast audio based on the generated report  # Podcast removed -->
 
-### Replays
+### Examples
 
-- [How tall is Eiffel Tower compared to tallest building?](https://deerflow.tech/chat?replay=eiffel-tower-vs-tallest-building)
-- [What are the top trending repositories on GitHub?](https://deerflow.tech/chat?replay=github-top-trending-repo)
-- [Write an article about Nanjing's traditional dishes](https://deerflow.tech/chat?replay=nanjing-traditional-dishes)
-- [How to decorate a rental apartment?](https://deerflow.tech/chat?replay=rental-apartment-decoration)
-- [Visit our official website to explore more replays.](https://deerflow.tech/#case-studies)
+DeerFlow can help you research a wide variety of topics, including:
+
+- Comparative analysis (e.g., building heights with calculations)
+- Technology trends and repository analysis
+- Cultural and culinary research with imagery
+- Practical guides with visual examples
+- [Visit our official website to see more examples.](https://deerflow.tech/#case-studies)
 
 ---
 
@@ -45,7 +47,7 @@ In this demo, we showcase how to use DeerFlow to:
 - [🌟 Features](#features)
 - [🏗️ Architecture](#architecture)
 - [🛠️ Development](#development)
-- [🐳 Docker](#docker)
+
 - [🗣️ Text-to-Speech Integration](#text-to-speech-integration)
 - [📚 Examples](#examples)
 - [❓ FAQ](#faq)
@@ -88,7 +90,7 @@ uv sync
 # Configure .env with your API keys
 # Tavily: https://app.tavily.com/home
 # Brave_SEARCH: https://brave.com/search/api/
-# volcengine TTS: Add your TTS credentials if you have them
+# volcengine TTS: Removed (TTS feature no longer supported)
 cp .env.example .env
 
 # See the 'Supported Search Engines' and 'Text-to-Speech Integration' sections below for all available options
@@ -97,9 +99,9 @@ cp .env.example .env
 # Please refer to 'docs/configuration_guide.md' for more details
 cp conf.yaml.example conf.yaml
 
-# Install marp for ppt generation
+# Install marp for ppt generation - PPT removed
 # https://github.com/marp-team/marp-cli?tab=readme-ov-file#use-package-manager
-brew install marp-cli
+# brew install marp-cli
 ```
 
 Optionally, install web UI dependencies via [pnpm](https://pnpm.io/installation):
@@ -184,7 +186,7 @@ SEARCH_API=tavily
   - OpenAI-compatible API interface
   - Multi-tier LLM system for different task complexities
 
-### Tools and MCP Integrations
+### Tools and Integrations
 
 - 🔍 **Search and Retrieval**
 
@@ -204,7 +206,7 @@ SEARCH_API=tavily
      RAGFLOW_RETRIEVAL_SIZE=10
   ```
 
-- 🔗 **MCP Seamless Integration**
+
   - Expand capabilities for private domain access, knowledge graph, web browsing and more
   - Facilitates integration of diverse research tools and methodologies
 
@@ -222,10 +224,10 @@ SEARCH_API=tavily
 
 ### Content Creation
 
-- 🎙️ **Podcast and Presentation Generation**
-  - AI-powered podcast script generation and audio synthesis
-  - Automated creation of simple PowerPoint presentations
-  - Customizable templates for tailored content
+<!-- - 🎙️ **Podcast and Presentation Generation**  # Podcast removed
+- AI-powered podcast script generation and audio synthesis -->
+  <!-- - Automated creation of simple PowerPoint presentations  # PPT removed
+  - Customizable templates for tailored content -->
 
 ## Architecture
 
@@ -251,7 +253,7 @@ The system employs a streamlined workflow with the following components:
 
 3. **Research Team**: A collection of specialized agents that execute the plan:
 
-   - **Researcher**: Conducts web searches and information gathering using tools like web search engines, crawling and even MCP services.
+   - **Researcher**: Conducts web searches and information gathering using tools like web search engines and crawling.
    - **Coder**: Handles code analysis, execution, and technical tasks using Python REPL tool.
      Each agent has access to specific tools optimized for their role and operates within the LangGraph framework
 
@@ -262,24 +264,7 @@ The system employs a streamlined workflow with the following components:
 
 ## Text-to-Speech Integration
 
-DeerFlow now includes a Text-to-Speech (TTS) feature that allows you to convert research reports to speech. This feature uses the volcengine TTS API to generate high-quality audio from text. Features like speed, volume, and pitch are also customizable.
-
-### Using the TTS API
-
-You can access the TTS functionality through the `/api/tts` endpoint:
-
-```bash
-# Example API call using curl
-curl --location 'http://localhost:8000/api/tts' \
---header 'Content-Type: application/json' \
---data '{
-    "text": "This is a test of the text-to-speech functionality.",
-    "speed_ratio": 1.0,
-    "volume_ratio": 1.0,
-    "pitch_ratio": 1.0
-}' \
---output speech.mp3
-```
+<!-- TTS feature has been removed from DeerFlow -->
 
 ## Development
 
@@ -382,39 +367,7 @@ DeerFlow supports LangSmith tracing to help you debug and monitor your workflows
 
 This will enable trace visualization in LangGraph Studio and send your traces to LangSmith for monitoring and analysis.
 
-## Docker
 
-You can also run this project with Docker.
-
-First, you need read the [configuration](docs/configuration_guide.md) below. Make sure `.env`, `.conf.yaml` files are ready.
-
-Second, to build a Docker image of your own web server:
-
-```bash
-docker build -t deer-flow-api .
-```
-
-Final, start up a docker container running the web server:
-
-```bash
-# Replace deer-flow-api-app with your preferred container name
-docker run -d -t -p 8000:8000 --env-file .env --name deer-flow-api-app deer-flow-api
-
-# stop the server
-docker stop deer-flow-api-app
-```
-
-### Docker Compose (include both backend and frontend)
-
-DeerFlow provides a docker-compose setup to easily run both the backend and frontend together:
-
-```bash
-# building docker image
-docker compose build
-
-# start the server
-docker compose up
-```
 
 ## Examples
 
@@ -429,41 +382,38 @@ The following examples demonstrate the capabilities of DeerFlow:
 
 2. **Google's Agent to Agent Protocol Report** - Overview of Google's Agent to Agent (A2A) protocol
 
-   - Discusses its role in AI agent communication and its relationship with Anthropic's Model Context Protocol (MCP)
+   - Discusses its role in AI agent communication
    - [View full report](examples/what_is_agent_to_agent_protocol.md)
 
-3. **What is MCP?** - A comprehensive analysis of the term "MCP" across multiple contexts
 
-   - Explores Model Context Protocol in AI, Monocalcium Phosphate in chemistry, and Micro-channel Plate in electronics
-   - [View full report](examples/what_is_mcp.md)
 
-4. **Bitcoin Price Fluctuations** - Analysis of recent Bitcoin price movements
+3. **Bitcoin Price Fluctuations** - Analysis of recent Bitcoin price movements
 
    - Examines market trends, regulatory influences, and technical indicators
    - Provides recommendations based on historical data
    - [View full report](examples/bitcoin_price_fluctuation.md)
 
-5. **What is LLM?** - An in-depth exploration of Large Language Models
+4. **What is LLM?** - An in-depth exploration of Large Language Models
 
    - Discusses architecture, training, applications, and ethical considerations
    - [View full report](examples/what_is_llm.md)
 
-6. **How to Use Claude for Deep Research?** - Best practices and workflows for using Claude in deep research
+5. **How to Use Claude for Deep Research?** - Best practices and workflows for using Claude in deep research
 
    - Covers prompt engineering, data analysis, and integration with other tools
    - [View full report](examples/how_to_use_claude_deep_research.md)
 
-7. **AI Adoption in Healthcare: Influencing Factors** - Analysis of factors driving AI adoption in healthcare
+6. **AI Adoption in Healthcare: Influencing Factors** - Analysis of factors driving AI adoption in healthcare
 
    - Discusses AI technologies, data quality, ethical considerations, economic evaluations, organizational readiness, and digital infrastructure
    - [View full report](examples/AI_adoption_in_healthcare.md)
 
-8. **Quantum Computing Impact on Cryptography** - Analysis of quantum computing's impact on cryptography
+7. **Quantum Computing Impact on Cryptography** - Analysis of quantum computing's impact on cryptography
 
    - Discusses vulnerabilities of classical cryptography, post-quantum cryptography, and quantum-resistant cryptographic solutions
    - [View full report](examples/Quantum_Computing_Impact_on_Cryptography.md)
 
-9. **Cristiano Ronaldo's Performance Highlights** - Analysis of Cristiano Ronaldo's performance highlights
+8. **Cristiano Ronaldo's Performance Highlights** - Analysis of Cristiano Ronaldo's performance highlights
    - Discusses his career achievements, international goals, and performance in various matches
    - [View full report](examples/Cristiano_Ronaldo's_Performance_Highlights.md)
 
