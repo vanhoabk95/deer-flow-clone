@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
-import { Check, Copy, Headphones, Pencil, Undo2, X, Download } from "lucide-react";
+import { Check, Copy, X, Download } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { ScrollContainer } from "~/components/deer-flow/scroll-container";
@@ -48,7 +48,6 @@ export function ResearchBlock({
   //   await listenToPodcast(researchId);
   // }, [researchId]);
 
-  const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
   const handleCopy = useCallback(() => {
     if (!reportId) {
@@ -91,10 +90,7 @@ export function ResearchBlock({
     }, 0);
   }, [reportId]);
 
-    
-  const handleEdit = useCallback(() => {
-    setEditing((editing) => !editing);
-  }, []);
+
 
   // When the research id changes, set the active tab to activities
   useEffect(() => {
@@ -120,16 +116,7 @@ export function ResearchBlock({
                   <Headphones />
                 </Button>
               </Tooltip> */}
-              <Tooltip title="Edit">
-                <Button
-                  className="text-gray-400"
-                  size="icon"
-                  variant="ghost"
-                  onClick={handleEdit}
-                >
-                  {editing ? <Undo2 /> : <Pencil />}
-                </Button>
-              </Tooltip>
+
               <Tooltip title="Copy">
                 <Button
                   className="text-gray-400"
@@ -200,15 +187,6 @@ export function ResearchBlock({
                   className="mt-4"
                   content={useStore.getState().messages.get(reportId)?.content || ""}
                   isCompleted={!reportStreaming}
-                  onEdit={(content) => {
-                    const message = useStore.getState().messages.get(reportId);
-                    if (message) {
-                      message.content = content;
-                      useStore.setState({
-                        messages: new Map(useStore.getState().messages).set(reportId, message),
-                      });
-                    }
-                  }}
                 />
               )}
             </ScrollContainer>

@@ -14,14 +14,20 @@ import type { Resource } from "~/core/messages";
 
 export const resourceSuggestion: MentionOptions["suggestion"] = {
   items: ({ query }) => {
-    return fetch(resolveServiceURL(`rag/resources?query=${query}`), {
+    // Search in knowledge bases
+    return fetch(resolveServiceURL(`knowledge-bases/search?query=${query}`), {
       method: "GET",
     })
       .then((res) => res.json())
       .then((res) => {
-        return res.resources as Array<Resource>;
+        // Transform knowledge bases to resources format
+        return res.map((kb: any) => ({
+          uri: `kb://${kb.id}`,
+          title: kb.name,
+        })) as Array<Resource>;
       })
       .catch((err) => {
+        console.error("Failed to search knowledge bases:", err);
         return [];
       });
   },

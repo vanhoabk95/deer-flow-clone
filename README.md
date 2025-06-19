@@ -426,31 +426,12 @@ uv run main.py "What factors are influencing AI adoption in healthcare?"
 # Run with custom planning parameters
 uv run main.py --max_plan_iterations 3 "How does quantum computing impact cryptography?"
 
-# Run in interactive mode with built-in questions
-uv run main.py --interactive
-
 # Or run with basic interactive prompt
 uv run main.py
 
 # View all available options
 uv run main.py --help
 ```
-
-### Interactive Mode
-
-The application now supports an interactive mode with built-in questions in both English and Chinese:
-
-1. Launch the interactive mode:
-
-   ```bash
-   uv run main.py --interactive
-   ```
-
-2. Select your preferred language (English or 中文)
-
-3. Choose from a list of built-in questions or select the option to ask your own question
-
-4. The system will process your question and generate a comprehensive research report
 
 ### Human in the Loop
 
@@ -483,7 +464,6 @@ DeerFlow includes a human in the loop mechanism that allows you to review, edit,
 The application supports several command-line arguments to customize its behavior:
 
 - **query**: The research query to process (can be multiple words)
-- **--interactive**: Run in interactive mode with built-in questions
 - **--max_plan_iterations**: Maximum number of planning cycles (default: 1)
 - **--max_step_num**: Maximum number of steps in a research plan (default: 3)
 - **--debug**: Enable detailed debug logging

@@ -40,6 +40,6 @@ export interface ToolCallRuntime {
 }
 
 export interface Resource {
-  uri: string;
+  uri: string; // For knowledge bases, format: "kb://{knowledge_base_id}"
   title: string;
 }

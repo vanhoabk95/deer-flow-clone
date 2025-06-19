@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 export * from "./chat";
+export * from "./knowledge-base";
 // export * from "./mcp";  // MCP already removed
 // export * from "./podcast";  // Podcast removed
 // export * from "./prompt-enhancer";  // Prompt enhancer removed

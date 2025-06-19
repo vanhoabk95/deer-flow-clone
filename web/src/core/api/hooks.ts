@@ -16,7 +16,8 @@ export function useRAGProvider() {
       setLoading(false);
       return;
     }
-    setProvider(getConfig().rag.provider);
+    // Always use built-in knowledge base provider
+    setProvider("knowledge-base");
     setLoading(false);
   }, []);
 

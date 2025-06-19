@@ -267,3 +267,181 @@ async def config():
         rag=RAGConfigResponse(provider=SELECTED_RAG_PROVIDER),
         models=get_configured_llm_models(),
     )
+
+
+# ============================================================================
+# Knowledge Base Endpoints (Simple in-memory implementation for demo)
+# ============================================================================
+
+# Simple in-memory storage for demo purposes
+knowledge_bases = {}
+documents = {}
+document_counter = 0
+kb_counter = 0
+
+from datetime import datetime
+from fastapi import UploadFile, File, Form
+from pydantic import BaseModel
+
+class KnowledgeBase(BaseModel):
+    id: str
+    name: str
+    description: str = ""
+    created_at: str
+    updated_at: str
+    document_count: int = 0
+
+class Document(BaseModel):
+    id: str
+    knowledge_base_id: str
+    name: str
+    file_name: str
+    file_type: str
+    file_size: int
+    status: str = "ready"  # uploading, indexing, ready, error
+    error_message: str = ""
+    created_at: str
+    updated_at: str
+
+class CreateKnowledgeBaseRequest(BaseModel):
+    name: str
+    description: str = ""
+
+@app.get("/api/knowledge-bases")
+async def list_knowledge_bases():
+    """Get all knowledge bases."""
+    return list(knowledge_bases.values())
+
+@app.post("/api/knowledge-bases")
+async def create_knowledge_base(request: CreateKnowledgeBaseRequest):
+    """Create a new knowledge base."""
+    global kb_counter
+    kb_counter += 1
+    kb_id = f"kb_{kb_counter}"
+    now = datetime.now().isoformat()
+    
+    kb = KnowledgeBase(
+        id=kb_id,
+        name=request.name,
+        description=request.description,
+        created_at=now,
+        updated_at=now,
+        document_count=0
+    )
+    knowledge_bases[kb_id] = kb
+    documents[kb_id] = []
+    return kb
+
+@app.put("/api/knowledge-bases/{kb_id}")
+async def update_knowledge_base(kb_id: str, request: CreateKnowledgeBaseRequest):
+    """Update a knowledge base."""
+    if kb_id not in knowledge_bases:
+        raise HTTPException(status_code=404, detail="Knowledge base not found")
+    
+    kb = knowledge_bases[kb_id]
+    kb.name = request.name
+    kb.description = request.description
+    kb.updated_at = datetime.now().isoformat()
+    return kb
+
+@app.delete("/api/knowledge-bases/{kb_id}")
+async def delete_knowledge_base(kb_id: str):
+    """Delete a knowledge base."""
+    if kb_id not in knowledge_bases:
+        raise HTTPException(status_code=404, detail="Knowledge base not found")
+    
+    del knowledge_bases[kb_id]
+    if kb_id in documents:
+        del documents[kb_id]
+    return {"message": "Knowledge base deleted successfully"}
+
+@app.get("/api/knowledge-bases/search")
+async def search_knowledge_bases(query: str = ""):
+    """Search knowledge bases by name or description."""
+    if not query:
+        return list(knowledge_bases.values())
+    
+    query_lower = query.lower()
+    result = []
+    for kb in knowledge_bases.values():
+        if (query_lower in kb.name.lower() or 
+            query_lower in kb.description.lower()):
+            result.append(kb)
+    return result
+
+@app.get("/api/knowledge-bases/{kb_id}/documents")
+async def list_documents(kb_id: str):
+    """Get all documents in a knowledge base."""
+    if kb_id not in knowledge_bases:
+        raise HTTPException(status_code=404, detail="Knowledge base not found")
+    return documents.get(kb_id, [])
+
+@app.post("/api/knowledge-bases/{kb_id}/documents")
+async def upload_document(
+    kb_id: str,
+    file: UploadFile = File(...),
+    knowledge_base_id: str = Form(...)
+):
+    """Upload a document to a knowledge base."""
+    if kb_id not in knowledge_bases:
+        raise HTTPException(status_code=404, detail="Knowledge base not found")
+    
+    global document_counter
+    document_counter += 1
+    doc_id = f"doc_{document_counter}"
+    now = datetime.now().isoformat()
+    
+    # Read file content (for demo, we just store metadata)
+    content = await file.read()
+    
+    doc = Document(
+        id=doc_id,
+        knowledge_base_id=kb_id,
+        name=file.filename or f"Document {document_counter}",
+        file_name=file.filename or f"document_{document_counter}",
+        file_type=file.content_type or "application/octet-stream",
+        file_size=len(content),
+        status="ready",  # For demo, immediately mark as ready
+        created_at=now,
+        updated_at=now
+    )
+    
+    if kb_id not in documents:
+        documents[kb_id] = []
+    documents[kb_id].append(doc)
+    
+    # Update document count
+    knowledge_bases[kb_id].document_count = len(documents[kb_id])
+    knowledge_bases[kb_id].updated_at = now
+    
+    return doc
+
+@app.get("/api/knowledge-bases/{kb_id}/documents/{doc_id}")
+async def get_document_status(kb_id: str, doc_id: str):
+    """Get document status."""
+    if kb_id not in knowledge_bases:
+        raise HTTPException(status_code=404, detail="Knowledge base not found")
+    
+    kb_docs = documents.get(kb_id, [])
+    for doc in kb_docs:
+        if doc.id == doc_id:
+            return doc
+    
+    raise HTTPException(status_code=404, detail="Document not found")
+
+@app.delete("/api/knowledge-bases/{kb_id}/documents/{doc_id}")
+async def delete_document(kb_id: str, doc_id: str):
+    """Delete a document from a knowledge base."""
+    if kb_id not in knowledge_bases:
+        raise HTTPException(status_code=404, detail="Knowledge base not found")
+    
+    kb_docs = documents.get(kb_id, [])
+    for i, doc in enumerate(kb_docs):
+        if doc.id == doc_id:
+            del kb_docs[i]
+            # Update document count
+            knowledge_bases[kb_id].document_count = len(kb_docs)
+            knowledge_bases[kb_id].updated_at = datetime.now().isoformat()
+            return {"message": "Document deleted successfully"}
+    
+    raise HTTPException(status_code=404, detail="Document not found")

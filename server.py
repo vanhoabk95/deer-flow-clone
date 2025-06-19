@@ -72,6 +72,20 @@ if __name__ == "__main__":
             host=args.host,
             port=args.port,
             reload=reload,
+                       reload_excludes=[
+                "*.log",
+                "*.tmp", 
+                "*.temp",
+                "__pycache__/*",
+                ".pytest_cache/*",
+                ".mypy_cache/*",
+                ".ruff_cache/*",
+                "web/node_modules/*",
+                "web/.next/*",
+                "web/.turbo/*",
+                ".git/*",
+                "*.pyc"
+            ] if reload else [],
             log_level=args.log_level,
         )
     except Exception as e:

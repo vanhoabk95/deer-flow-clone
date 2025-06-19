@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Database } from "lucide-react";
 import Link from "next/link";
 
 import { AuroraText } from "~/components/magicui/aurora-text";
@@ -47,6 +47,12 @@ export function Jumbotron() {
           <Button className="text-lg w-42" size="lg" asChild>
             <Link href="/chat">
               Get Started <ChevronRight />
+            </Link>
+          </Button>
+          <Button variant="outline" className="text-lg" size="lg" asChild>
+            <Link href="/knowledge-base">
+              <Database className="w-5 h-5 mr-2" />
+              Knowledge Base
             </Link>
           </Button>
         </div>
