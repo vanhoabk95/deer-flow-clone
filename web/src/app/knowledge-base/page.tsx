@@ -4,7 +4,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Database, FileText, Upload, Trash2, Edit3, Search } from "lucide-react";
+import { Plus, Database, FileText, Upload, Trash2, Edit3, MessageSquare } from "lucide-react";
 import { useKnowledgeBaseStore } from "~/core/store/knowledge-base-store";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -14,9 +14,19 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "~/components/ui/badge";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Separator } from "~/components/ui/separator";
+import { Logo } from "~/components/deer-flow/logo";
+import { SettingsDialog } from "../settings/dialogs/settings-dialog";
+import Link from "next/link";
+import { Suspense } from "react";
 
 interface CreateKnowledgeBaseDialogProps {
   onSuccess?: () => void;
+}
+
+interface EditKnowledgeBaseDialogProps {
+  knowledgeBase: any;
+  onSuccess?: () => void;
+  trigger: React.ReactNode;
 }
 
 function CreateKnowledgeBaseDialog({ onSuccess }: CreateKnowledgeBaseDialogProps) {
@@ -47,47 +57,47 @@ function CreateKnowledgeBaseDialog({ onSuccess }: CreateKnowledgeBaseDialogProps
       <DialogTrigger asChild>
         <Button>
           <Plus className="w-4 h-4 mr-2" />
-          Tạo Knowledge Base
+          Create Knowledge Base
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Tạo Knowledge Base mới</DialogTitle>
+          <DialogTitle>Create New Knowledge Base</DialogTitle>
           <DialogDescription>
-            Tạo một knowledge base để lưu trữ và quản lý tài liệu của bạn.
+            Create a knowledge base to store and manage your documents.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="name" className="text-sm font-medium">
-              Tên Knowledge Base *
+              Knowledge Base Name *
             </label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Nhập tên knowledge base"
+              placeholder="Enter knowledge base name"
               required
             />
           </div>
           <div>
             <label htmlFor="description" className="text-sm font-medium">
-              Mô tả
+              Description
             </label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Nhập mô tả cho knowledge base"
+              placeholder="Enter description for knowledge base"
               rows={3}
             />
           </div>
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Hủy
+              Cancel
             </Button>
             <Button type="submit" disabled={loading || !name.trim()}>
-              {loading ? "Đang tạo..." : "Tạo"}
+              {loading ? "Creating..." : "Create"}
             </Button>
           </div>
         </form>
@@ -96,7 +106,85 @@ function CreateKnowledgeBaseDialog({ onSuccess }: CreateKnowledgeBaseDialogProps
   );
 }
 
-function KnowledgeBaseCard({ knowledgeBase }: { knowledgeBase: any }) {
+function EditKnowledgeBaseDialog({ knowledgeBase, onSuccess, trigger }: EditKnowledgeBaseDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(knowledgeBase.name);
+  const [description, setDescription] = useState(knowledgeBase.description || "");
+  const [loading, setLoading] = useState(false);
+  const { updateKnowledgeBase } = useKnowledgeBaseStore();
+
+  // Reset form when dialog opens
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      setName(knowledgeBase.name);
+      setDescription(knowledgeBase.description || "");
+    }
+    setOpen(newOpen);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    setLoading(true);
+    await updateKnowledgeBase(knowledgeBase.id, name.trim(), description.trim() || undefined);
+    setLoading(false);
+    setOpen(false);
+    onSuccess?.();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        {trigger}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Knowledge Base</DialogTitle>
+          <DialogDescription>
+            Update the name and description of your knowledge base.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="edit-name" className="text-sm font-medium">
+              Knowledge Base Name *
+            </label>
+            <Input
+              id="edit-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter knowledge base name"
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="edit-description" className="text-sm font-medium">
+              Description
+            </label>
+            <Textarea
+              id="edit-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter description for knowledge base"
+              rows={3}
+            />
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading || !name.trim()}>
+              {loading ? "Updating..." : "Update"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function KnowledgeBaseCard({ knowledgeBase, onRefresh }: { knowledgeBase: any; onRefresh: () => void }) {
   const [showDocuments, setShowDocuments] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const {
@@ -138,116 +226,136 @@ function KnowledgeBaseCard({ knowledgeBase }: { knowledgeBase: any }) {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'ready': return 'Sẵn sàng';
-      case 'indexing': return 'Đang index';
-      case 'uploading': return 'Đang tải lên';
-      case 'error': return 'Lỗi';
-      default: return 'Không xác định';
+      case 'ready': return 'Ready';
+      case 'indexing': return 'Indexing';
+      case 'uploading': return 'Uploading';
+      case 'error': return 'Error';
+      default: return 'Unknown';
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="flex items-center">
-              <Database className="w-5 h-5 mr-2" />
-              {knowledgeBase.name}
+    <Card className="h-fit">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0 pr-2">
+            <CardTitle className="flex items-center text-sm sm:text-base">
+              <Database className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span className="truncate leading-tight">{knowledgeBase.name}</span>
             </CardTitle>
             {knowledgeBase.description && (
-              <CardDescription className="mt-1">
+              <CardDescription className="mt-1 text-xs sm:text-sm line-clamp-2">
                 {knowledgeBase.description}
               </CardDescription>
             )}
           </div>
-          <div className="flex items-center space-x-2">
-            <Badge variant="secondary">
-              {knowledgeBase.document_count} tài liệu
-            </Badge>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <EditKnowledgeBaseDialog
+              knowledgeBase={knowledgeBase}
+              onSuccess={onRefresh}
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 hover:bg-blue-500/10"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                </Button>
+              }
+            />
             <Button
               variant="ghost"
               size="sm"
               onClick={() => deleteKnowledgeBase(knowledgeBase.id)}
+              className="h-7 w-7 p-0 hover:bg-destructive/10"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
+      <CardContent className="pt-0">
+        <div className="space-y-3">
+          <div className="flex flex-col gap-2">
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.txt,.md"
+              onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+              className="hidden"
+              id={`upload-${knowledgeBase.id}`}
+            />
+            <label htmlFor={`upload-${knowledgeBase.id}`} className="block">
+              <Button 
+                variant="outline" 
+                asChild 
+                className="text-xs sm:text-sm h-8 w-full justify-start"
+                size="sm"
+              >
+                <span>
+                  <Upload className="w-3.5 h-3.5 mr-2" />
+                  Upload Documents
+                </span>
+              </Button>
+            </label>
+            
             <Button
               variant="outline"
               onClick={() => setShowDocuments(!showDocuments)}
+              className="text-xs sm:text-sm h-8 justify-start"
+              size="sm"
             >
-              <FileText className="w-4 h-4 mr-2" />
-              {showDocuments ? "Ẩn tài liệu" : "Xem tài liệu"}
+              <FileText className="w-3.5 h-3.5 mr-2" />
+              {showDocuments ? "Hide Documents" : "View Documents"}
             </Button>
-            <div>
-              <input
-                type="file"
-                multiple
-                accept=".pdf,.doc,.docx,.txt,.md"
-                onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
-                className="hidden"
-                id={`upload-${knowledgeBase.id}`}
-              />
-              <label htmlFor={`upload-${knowledgeBase.id}`}>
-                <Button variant="outline" asChild>
-                  <span>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Tải lên tài liệu
-                  </span>
-                </Button>
-              </label>
-            </div>
           </div>
 
           {/* Show uploading files */}
           {Array.from(uploadingFiles.entries()).map(([fileId, fileInfo]) => {
             if (!fileId.startsWith(knowledgeBase.id)) return null;
             return (
-              <div key={fileId} className="flex items-center space-x-2 p-2 bg-blue-50 rounded">
-                <Upload className="w-4 h-4 text-blue-500" />
-                <span className="flex-1 text-sm">{fileInfo.fileName}</span>
-                <Badge variant="outline">Đang tải lên</Badge>
+              <div key={fileId} className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded text-xs">
+                <Upload className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                <span className="flex-1 truncate">{fileInfo.fileName}</span>
+                <Badge variant="outline" className="text-xs px-1.5 py-0.5">Uploading</Badge>
               </div>
             );
           })}
 
           {showDocuments && (
-            <div className="space-y-2">
-              <Separator />
-              <div className="text-sm font-medium">Tài liệu ({documents.length})</div>
+            <div className="space-y-2 border-t pt-3">
+              <div className="text-xs sm:text-sm font-medium text-muted-foreground">
+                Documents ({documents.length})
+              </div>
               {documents.length === 0 ? (
-                <div className="text-center text-gray-500 py-4">
-                  Chưa có tài liệu nào
+                <div className="text-center text-muted-foreground py-4 text-xs">
+                  No documents yet
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
                   {documents.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between p-2 border rounded">
-                      <div className="flex items-center space-x-2">
-                        <FileText className="w-4 h-4" />
-                        <div>
-                          <div className="text-sm font-medium">{doc.name}</div>
-                          <div className="text-xs text-gray-500">
-                            {(doc.file_size / 1024).toFixed(1)} KB • {new Date(doc.created_at).toLocaleDateString('vi-VN')}
-                          </div>
+                    <div key={doc.id} className="flex items-center gap-2 p-2 border rounded text-xs">
+                      <FileText className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate">{doc.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {(doc.file_size / 1024).toFixed(1)} KB • {new Date(doc.created_at).toLocaleDateString('en-US')}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="outline" className={getStatusColor(doc.status)}>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs px-1.5 py-0.5 ${getStatusColor(doc.status)}`}
+                        >
                           {getStatusText(doc.status)}
                         </Badge>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteDocument(knowledgeBase.id, doc.id)}
+                          className="h-6 w-6 p-0 hover:bg-destructive/10"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
@@ -263,80 +371,84 @@ function KnowledgeBaseCard({ knowledgeBase }: { knowledgeBase: any }) {
 }
 
 export default function KnowledgeBasePage() {
-  const [searchQuery, setSearchQuery] = useState("");
   const { knowledgeBases, loading, fetchKnowledgeBases } = useKnowledgeBaseStore();
 
   useEffect(() => {
     fetchKnowledgeBases();
   }, [fetchKnowledgeBases]);
 
-  const filteredKnowledgeBases = knowledgeBases.filter(kb =>
-    kb.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (kb.description && kb.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Knowledge Base</h1>
-          <p className="text-gray-600 mt-2">
-            Quản lý các knowledge base và tài liệu của bạn
-          </p>
+    <div className="flex h-screen w-screen flex-col overscroll-none">
+      {/* Header */}
+      <header className="flex h-12 w-full items-center justify-between px-3 sm:px-4 z-50 bg-background/80 backdrop-blur-sm border-b flex-shrink-0">
+        <Logo />
+        <div className="flex items-center space-x-2">
+          <Link href="/chat">
+            <Button variant="ghost" size="sm" className="text-xs sm:text-sm">
+              <MessageSquare className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Chat</span>
+            </Button>
+          </Link>
+          <Suspense>
+            <SettingsDialog />
+          </Suspense>
         </div>
-        <CreateKnowledgeBaseDialog onSuccess={fetchKnowledgeBases} />
-      </div>
+      </header>
 
-      <div className="flex items-center space-x-4 mb-6">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Tìm kiếm knowledge base..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+      {/* Main content */}
+      <div className="flex-1 overflow-auto min-h-0">
+        <div className="container mx-auto py-4 sm:py-8 px-3 sm:px-4 max-w-7xl min-h-full">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold truncate">Knowledge Base</h1>
+              <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">
+                Manage your knowledge bases and documents
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <CreateKnowledgeBaseDialog onSuccess={fetchKnowledgeBases} />
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="grid gap-3 sm:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="h-fit">
+                  <CardHeader className="pb-3">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <Skeleton className="h-16 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : knowledgeBases.length === 0 ? (
+            <div className="text-center py-8 sm:py-12">
+              <Database className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                No knowledge bases yet
+              </h3>
+              <p className="text-gray-500 mb-4 text-sm sm:text-base">
+                Get started by creating your first knowledge base
+              </p>
+              <CreateKnowledgeBaseDialog onSuccess={fetchKnowledgeBases} />
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
+              {knowledgeBases.map((knowledgeBase) => (
+                <div key={knowledgeBase.id} className="w-full max-w-full">
+                  <KnowledgeBaseCard
+                    knowledgeBase={knowledgeBase}
+                    onRefresh={fetchKnowledgeBases}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-
-      {loading ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-20 w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : filteredKnowledgeBases.length === 0 ? (
-        <div className="text-center py-12">
-          <Database className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {searchQuery ? "Không tìm thấy knowledge base" : "Chưa có knowledge base nào"}
-          </h3>
-          <p className="text-gray-500 mb-4">
-            {searchQuery 
-              ? "Thử thay đổi từ khóa tìm kiếm của bạn"
-              : "Bắt đầu bằng cách tạo knowledge base đầu tiên"
-            }
-          </p>
-          {!searchQuery && <CreateKnowledgeBaseDialog onSuccess={fetchKnowledgeBases} />}
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredKnowledgeBases.map((knowledgeBase) => (
-            <KnowledgeBaseCard
-              key={knowledgeBase.id}
-              knowledgeBase={knowledgeBase}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 } 

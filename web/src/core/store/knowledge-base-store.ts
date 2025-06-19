@@ -54,7 +54,7 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
       set({ knowledgeBases });
     } catch (error) {
       console.error("Failed to fetch knowledge bases:", error);
-      toast.error("Không thể tải danh sách knowledge base");
+      toast.error("Unable to load knowledge bases");
     } finally {
       set({ loading: false });
     }
@@ -66,11 +66,11 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
       set((state) => ({
         knowledgeBases: [...state.knowledgeBases, newKnowledgeBase]
       }));
-      toast.success("Tạo knowledge base thành công");
+      toast.success("Knowledge base created successfully");
       return newKnowledgeBase;
     } catch (error) {
       console.error("Failed to create knowledge base:", error);
-      toast.error("Không thể tạo knowledge base");
+      toast.error("Unable to create knowledge base");
       return null;
     }
   },
@@ -83,10 +83,10 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
           kb.id === id ? updatedKnowledgeBase : kb
         )
       }));
-      toast.success("Cập nhật knowledge base thành công");
+      toast.success("Knowledge base updated successfully");
     } catch (error) {
       console.error("Failed to update knowledge base:", error);
-      toast.error("Không thể cập nhật knowledge base");
+      toast.error("Unable to update knowledge base");
     }
   },
 
@@ -97,10 +97,10 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
         knowledgeBases: state.knowledgeBases.filter(kb => kb.id !== id),
         documents: new Map([...state.documents].filter(([kbId]) => kbId !== id))
       }));
-      toast.success("Xóa knowledge base thành công");
+      toast.success("Knowledge base deleted successfully");
     } catch (error) {
       console.error("Failed to delete knowledge base:", error);
-      toast.error("Không thể xóa knowledge base");
+      toast.error("Unable to delete knowledge base");
     }
   },
 
@@ -113,7 +113,7 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
       }));
     } catch (error) {
       console.error("Failed to fetch documents:", error);
-      toast.error("Không thể tải danh sách tài liệu");
+      toast.error("Unable to load documents");
     }
   },
 
@@ -144,13 +144,13 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
         return { uploadingFiles: newUploadingFiles };
       });
 
-      toast.success(`Tải lên ${file.name} thành công`);
+      toast.success(`Successfully uploaded ${file.name}`);
 
       // Start polling for indexing status
       get().pollDocumentStatus(knowledgeBaseId, document.id);
     } catch (error) {
       console.error("Failed to upload document:", error);
-      toast.error(`Không thể tải lên ${file.name}`);
+      toast.error(`Unable to upload ${file.name}`);
       
       // Remove from uploading files
       set((state) => {
@@ -171,10 +171,10 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
           currentDocuments.filter(doc => doc.id !== documentId)
         )
       }));
-      toast.success("Xóa tài liệu thành công");
+      toast.success("Document deleted successfully");
     } catch (error) {
       console.error("Failed to delete document:", error);
-      toast.error("Không thể xóa tài liệu");
+      toast.error("Unable to delete document");
     }
   },
 
@@ -197,10 +197,10 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
         }));
 
         if (document.status === 'ready') {
-          toast.success(`Tài liệu ${document.name} đã được index thành công`);
+          toast.success(`Document ${document.name} indexed successfully`);
           return;
         } else if (document.status === 'error') {
-          toast.error(`Lỗi khi index tài liệu ${document.name}: ${document.error_message}`);
+          toast.error(`Error indexing document ${document.name}: ${document.error_message}`);
           return;
         }
 
