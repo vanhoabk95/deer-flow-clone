@@ -5,6 +5,7 @@ from datetime import datetime
 from langchain.chat_models import init_chat_model
 from langchain_tavily import TavilySearch
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, MessagesState, END, START
 from langchain_core.tools import tool
 
@@ -14,10 +15,13 @@ from openevals.prompts import (
     RAG_HELPFULNESS_PROMPT,
 )
 
-model = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",
-    temperature=0.2
-)
+# model = ChatGoogleGenerativeAI(
+#     model="gemini-2.0-flash",
+#     temperature=0.2
+# )
+
+model = ChatOllama(model="qwen2.5:0.5b", temperature=0.2)
+
 
 current_date = datetime.now().strftime("%A, %B %d, %Y")
 
@@ -51,7 +55,9 @@ Use the provided web search tool to find the latest information if you are not s
 # Simplify the Tavily search tool's input schema for a small local model
 @tool
 async def search_tool(query: str):
-    """Search the web for information relevant to the query."""
+    """Search the web for information relevant to the query.
+    
+    """
     return await TavilySearch(max_results=5).ainvoke({"query": query})
 
 

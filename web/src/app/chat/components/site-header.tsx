@@ -7,7 +7,7 @@ export async function SiteHeader() {
       <div className="container flex h-15 items-center justify-between px-3">
         <div className="text-xl font-medium">
           <span className="mr-1 text-2xl">🦌</span>
-          <span>DeerFlow</span>
+          <span>AI Chatbot</span>
         </div>
       </div>
       <hr className="from-border/0 via-border/70 to-border/0 m-0 h-px w-full border-none bg-gradient-to-r" />

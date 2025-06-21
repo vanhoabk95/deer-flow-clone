@@ -36,6 +36,8 @@ dependencies = [
     "langchain-core>=0.3.65",
     "langchain-google-genai>=2.1.5",
     "dotenv>=0.9.9",
+    "langgraph-cli[inmem]>=0.2.10",
+    "langchain-ollama>=0.3.3",
 ]
 
 [project.optional-dependencies]
