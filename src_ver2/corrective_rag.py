@@ -15,12 +15,12 @@ from openevals.prompts import (
     RAG_HELPFULNESS_PROMPT,
 )
 
-# model = ChatGoogleGenerativeAI(
-#     model="gemini-2.0-flash",
-#     temperature=0.2
-# )
+model = ChatGoogleGenerativeAI(
+    model="gemini-2.0-flash",
+    temperature=0.2
+)
 
-model = ChatOllama(model="qwen2.5:0.5b", temperature=0.2)
+#model = ChatOllama(model="qwen2.5:0.5b", temperature=0.2)
 
 
 current_date = datetime.now().strftime("%A, %B %d, %Y")

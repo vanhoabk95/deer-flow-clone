@@ -20,7 +20,7 @@ class BaseConfiguration:
         str,
         {"__template_metadata__": {"kind": "embeddings"}},
     ] = field(
-        default="openai/text-embedding-3-small",
+        default="ollama/nomic-embed-text:latest",
         metadata={
             "description": "Name of the embedding model to use. Must be a valid embedding model name. Supports format: provider/model-name (e.g., 'openai/text-embedding-3-small', 'ollama/nomic-embed-text:latest', 'cohere/embed-english-v3.0')"
         },
@@ -30,7 +30,7 @@ class BaseConfiguration:
         Literal["elastic-local", "elastic", "pinecone", "mongodb", "lancedb"],
         {"__template_metadata__": {"kind": "retriever"}},
     ] = field(
-        default="elastic-local",
+        default="lancedb",
         metadata={
             "description": "The vector store provider to use for retrieval. Options are 'elastic', 'elastic-local', 'pinecone', 'mongodb', or 'lancedb'."
         },
