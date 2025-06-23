@@ -15,6 +15,7 @@ from langchain_core.documents import Document
 from langchain_core.messages import AnyMessage, BaseMessage
 from langchain_core.runnables import RunnableConfig, ensure_config
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
 from langchain_ollama import OllamaEmbeddings
 from langgraph.graph import END, START, StateGraph, add_messages
 
@@ -98,9 +99,22 @@ class RetrievalState(InputState):
 class RetrievalConfiguration:
     """Configuration for retrieval graph."""
     
-    chat_model: str = field(
-        default="google-genai/gemini-1.5-flash",
-        metadata={"description": "Gemini model for chat"}
+    # Provider selection
+    llm_provider: Literal["gemini", "ollama"] = field(
+        default="ollama",
+        metadata={"description": "LLM provider to use (gemini or ollama)"}
+    )
+    
+    # Gemini model configuration
+    gemini_model: str = field(
+        default="gemini-2.0-flash",
+        metadata={"description": "Gemini model name"}
+    )
+    
+    # Ollama model configuration  
+    ollama_model: str = field(
+        default="gemma3:1b",
+        metadata={"description": "Ollama model name"}
     )
     
     embedding_model: str = field(
@@ -232,6 +246,23 @@ Generate exactly {num_queries} search queries, one per line:"""
 # Initialize relevance evaluator if openevals is available
 current_date = datetime.now().strftime("%A, %B %d, %Y")
 
+def create_chat_model(configuration: RetrievalConfiguration, temperature: float = 0):
+    """Create appropriate chat model based on provider configuration."""
+    if configuration.llm_provider == "gemini":
+        print(f"🤖 Sử dụng Gemini model: {configuration.gemini_model}")
+        return ChatGoogleGenerativeAI(
+            model=configuration.gemini_model,
+            temperature=temperature
+        )
+    elif configuration.llm_provider == "ollama":
+        print(f"🦙 Sử dụng Ollama model: {configuration.ollama_model}")
+        return ChatOllama(
+            model=configuration.ollama_model,
+            temperature=temperature
+        )
+    else:
+        raise ValueError(f"❌ Provider không được hỗ trợ: {configuration.llm_provider}. Chỉ hỗ trợ 'gemini' hoặc 'ollama'")
+
 def create_relevance_evaluator(model):
     """Create relevance evaluator if openevals is available."""
     if not OPENEVALS_AVAILABLE:
@@ -251,11 +282,8 @@ async def analyze_and_route_query(
     """Analyze and route user query."""
     configuration = RetrievalConfiguration.from_runnable_config(config)
     
-    # Load Gemini model
-    model = ChatGoogleGenerativeAI(
-        model=configuration.chat_model.split("/")[1] if "/" in configuration.chat_model else configuration.chat_model,
-        temperature=0
-    )
+    # Create chat model based on provider
+    model = create_chat_model(configuration, temperature=0)
     
     messages = [
         {"role": "system", "content": ROUTER_SYSTEM_PROMPT}
@@ -286,10 +314,7 @@ async def respond_general(
     """Respond to general queries."""
     configuration = RetrievalConfiguration.from_runnable_config(config)
     
-    model = ChatGoogleGenerativeAI(
-        model=configuration.chat_model.split("/")[1] if "/" in configuration.chat_model else configuration.chat_model,
-        temperature=0.3
-    )
+    model = create_chat_model(configuration, temperature=0.3)
     
     system_prompt = GENERAL_SYSTEM_PROMPT.format(logic=state.router["logic"])
     messages = [
@@ -306,10 +331,7 @@ async def ask_for_more_info(
     """Ask for more information when needed."""
     configuration = RetrievalConfiguration.from_runnable_config(config)
     
-    model = ChatGoogleGenerativeAI(
-        model=configuration.chat_model.split("/")[1] if "/" in configuration.chat_model else configuration.chat_model,
-        temperature=0.3
-    )
+    model = create_chat_model(configuration, temperature=0.3)
     
     # Using the same prompt logic as general for simplicity
     system_prompt = """You are a LangChain Developer advocate. Your job is help people using LangChain answer any issues they are running into.
@@ -341,10 +363,7 @@ async def generate_search_queries(
     original_query = last_message.content if hasattr(last_message, 'content') else str(last_message)
     
     # Generate multiple queries using LLM
-    model = ChatGoogleGenerativeAI(
-        model=configuration.chat_model.split("/")[1] if "/" in configuration.chat_model else configuration.chat_model,
-        temperature=0.3
-    )
+    model = create_chat_model(configuration, temperature=0.3)
     
     prompt = QUERY_GENERATION_PROMPT.format(
         num_queries=configuration.num_generated_queries,
@@ -455,10 +474,7 @@ async def evaluate_relevance(
         return {"relevance_scores": []}
     
     # Create relevance evaluator
-    model = ChatGoogleGenerativeAI(
-        model=configuration.chat_model.split("/")[1] if "/" in configuration.chat_model else configuration.chat_model,
-        temperature=0
-    )
+    model = create_chat_model(configuration, temperature=0)
     
     relevance_evaluator = create_relevance_evaluator(model)
     if not relevance_evaluator:
@@ -542,10 +558,7 @@ async def generate_response(
     configuration = RetrievalConfiguration.from_runnable_config(config)
     
     # Generate response with context
-    model = ChatGoogleGenerativeAI(
-        model=configuration.chat_model.split("/")[1] if "/" in configuration.chat_model else configuration.chat_model,
-        temperature=0.1
-    )
+    model = create_chat_model(configuration, temperature=0.1)
     
     context = format_docs(state.documents)
     system_prompt = RESPONSE_SYSTEM_PROMPT.format(context=context)
@@ -583,5 +596,10 @@ graph = builder.compile()
 graph.name = "RetrievalGraph"
 
 if __name__ == "__main__":
-    print("Retrieval Graph created successfully!")
-    print("Use 'langgraph dev' to test graph")
+    print("🎉 Retrieval Graph đã được tạo thành công!")
+    print("📚 Hỗ trợ cả Gemini và Ollama LLM providers")
+    print("\n🚀 Cách sử dụng:")
+    print("   langgraph dev --configurable llm_provider=gemini --configurable gemini_model=gemini-2.0-flash-exp")
+    print("   langgraph dev --configurable llm_provider=ollama --configurable ollama_model=gemma2:2b")
+    print("   langgraph dev  # (mặc định sử dụng Ollama)")
+    print("\n📖 Xem config_example.py để biết thêm chi tiết")

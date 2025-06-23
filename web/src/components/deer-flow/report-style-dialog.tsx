@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import { useState } from "react";
-import { Check, FileText, Newspaper, Users, GraduationCap } from "lucide-react";
+import { Check, FileText, Newspaper, Users, GraduationCap, FileSearch, ClipboardPenLine, FlaskConical, ContactRound } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -42,6 +42,30 @@ const REPORT_STYLES = [
     label: "Social Media",
     description: "Concise, attention-grabbing, and shareable",
     icon: Users,
+  },
+  {
+    value: "issue_history" as const,
+    label: "Issue History",
+    description: "Suggest analyze base on issue history",
+    icon: FileSearch,
+  },
+  {
+    value: "risk_assessment" as const,
+    label: "Risk Assessment",
+    description: "Suggest check items, potential risks",
+    icon: FlaskConical,
+  },
+  {
+    value: "working_guide" as const,
+    label: "Working Guide",
+    description: "Guide step by step to do a work",
+    icon: ClipboardPenLine,
+  },
+  {
+    value: "common_knowledge" as const,
+    label: "Common Knowledge",
+    description: "Q&A about common knowledge, policies, training, rules",
+    icon: ContactRound,
   },
 ];
 
@@ -88,10 +112,10 @@ export function ReportStyleDialog() {
       </Tooltip>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Choose Writing Style</DialogTitle>
+          <DialogTitle>Choose Research Category</DialogTitle>
           <DialogDescription>
-            Select the writing style for your research reports. Each style is
-            optimized for different audiences and purposes.
+            Select the research category for your research. Each category is
+            optimized for different purposes.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 py-4">

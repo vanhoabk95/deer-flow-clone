@@ -8,10 +8,10 @@ import { cn } from "~/lib/utils";
 import { Welcome } from "./welcome";
 
 const questions = [
-  "How many times taller is the Eiffel Tower than the tallest building in the world?",
-  "How many years does an average Tesla battery last compared to a gasoline engine?",
-  "How many liters of water are required to produce 1 kg of beef?",
-  "How many times faster is the speed of light compared to the speed of sound?",
+  "I am getting a panel crack issue, can you help me to find the potential root cause?",
+  "I am planning to update the PMIC voltage, can you help me to find the potential risks?",
+  "Tell me step by step to use the Microscope in order to check the panel crack?",
+  "What training courses are required for the engineer band 3 to be able to promote to senior engineer?"
 ];
 export function ConversationStarter({
   className,

@@ -10,7 +10,7 @@ export function MultiAgentSection() {
       <SectionHeader
         anchor="workflow"
         title="Intelligent Workflow"
-        description="Discover how our AI agents collaborate to deliver comprehensive research results."
+        description="Discover how our Development Agents collaborate to deliver comprehensive research results."
       />
       <div className="flex h-[70vh] w-full flex-col items-center justify-center">
         <div className="h-full w-full">

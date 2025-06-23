@@ -426,14 +426,9 @@ export default function KnowledgeBasePage() {
             </div>
           ) : knowledgeBases.length === 0 ? (
             <div className="text-center py-8 sm:py-12">
-              <Database className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-                No knowledge bases yet
-              </h3>
-              <p className="text-gray-500 mb-4 text-sm sm:text-base">
+              <p className="text-gray-700 dark:text-gray-300 text-lg sm:text-xl font-semibold">
                 Get started by creating your first knowledge base
               </p>
-              <CreateKnowledgeBaseDialog onSuccess={fetchKnowledgeBases} />
             </div>
           ) : (
             <div className="grid gap-3 sm:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr">

@@ -14,12 +14,8 @@ export function Welcome({ className }: { className?: string }) {
       animate={{ opacity: 1, scale: 1 }}
     >
       <h3 className="mb-2 text-center text-3xl font-medium">
-        👋 Hello, there!
+        How are you doing today?
       </h3>
-      <div className="text-muted-foreground px-4 text-center text-lg">
-        Welcome to 🦌 DeerFlow, a deep research assistant built on cutting-edge language models, helps
-        you search on web, browse information, and handle complex tasks.
-      </div>
     </motion.div>
   );
 }

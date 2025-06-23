@@ -1,8 +1,7 @@
 // Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
-import { Bike, Building, Film, Github, Ham, Home, Pizza } from "lucide-react";
-import { Bot } from "lucide-react";
+import { FileSearch, ClipboardPenLine, FlaskConical, ContactRound} from "lucide-react";
 
 import { BentoCard } from "~/components/magicui/bento-grid";
 
@@ -10,52 +9,28 @@ import { SectionHeader } from "../components/section-header";
 
 const caseStudies = [
   {
-    title: "How tall is Eiffel Tower compared to tallest building?",
-    icon: Building,
+    title: "1. Issue History Q&A and Root Cause Analysis",
+    icon: FileSearch,
     description:
-      "Research compares the heights and global significance of the Eiffel Tower and Burj Khalifa, and uses Python code to calculate the multiples.",
+      "Empower your team to quickly investigate past issues by asking natural language questions. The AI agent searches historical records, identifies relevant incidents, and suggests potential root causes based on similar phenomena, accelerating troubleshooting and knowledge transfer.",
   },
   {
-    title: "What are the top trending repositories on GitHub?",
-    icon: Github,
+    title: "2. Risk Assessment and Change Impact Checklist",
+    icon: FlaskConical,
     description:
-      "Research utilizes tools to identify the most popular GitHub repositories and documents them in detail using search engines.",
+      "Enhance decision-making when implementing changes. The AI agent analyzes proposed modifications, highlights potential risks, and generates a tailored checklist of items to review—ensuring thorough risk assessment and safer design or process updates."
   },
   {
-    title: "Write an article about Nanjing's traditional dishes",
-    icon: Ham,
+    title: "3. Interactive Working Guide",
+    icon: ClipboardPenLine,
     description:
-      "Study vividly showcases Nanjing's famous dishes through rich content and imagery, uncovering their hidden histories and cultural significance.",
+      "Provide step-by-step guidance for any work task. Users simply ask how to perform specific actions, and the AI agent delivers clear, actionable instructions—reducing onboarding time, supporting continuous learning, and improving workflow efficiency.",
   },
   {
-    title: "How to decorate a small rental apartment?",
-    icon: Home,
+    title: "4. Common Knowledge Q&A: Policies, Training",
+    icon: ContactRound,
     description:
-      "Study provides readers with practical and straightforward methods for decorating apartments, accompanied by inspiring images.",
-  },
-  {
-    title: "Introduce the movie 'Léon: The Professional'",
-    icon: Film,
-    description:
-      "Research provides a comprehensive introduction to the movie 'Léon: The Professional', including its plot, characters, and themes.",
-  },
-  {
-    title: "How do you view the takeaway war in China?",
-    icon: Bike,
-    description:
-      "Research analyzes the intensifying competition between JD and Meituan, highlighting their strategies, technological innovations, and challenges.",
-  },
-  {
-    title: "Are ultra-processed foods linked to health?",
-    icon: Pizza,
-    description:
-      "Research examines the health risks of rising ultra-processed food consumption, urging more research on long-term effects and individual differences.",
-  },
-  {
-    title: 'Write an article on "Would you insure your AI twin?"',
-    icon: Bot,
-    description:
-      "Research explores the concept of insuring AI twins, highlighting their benefits, risks, ethical considerations, and the evolving regulatory.",
+      "Centralize answers to everyday organizational questions. The AI agent responds instantly to queries about HR policies, required training, security regulations, and more—helping everyone stay informed and compliant without searching through multiple documents.",
   },
 ];
 
@@ -64,8 +39,8 @@ export function CaseStudySection() {
     <section className="relative container hidden flex-col items-center justify-center md:flex">
       <SectionHeader
         anchor="case-studies"
-        title="Research Examples"
-        description="See examples of what DeerFlow can research for you."
+        title="Use Cases"
+        description="See examples of what Development Agent can research for you."
       />
       <div className="grid w-3/4 grid-cols-1 gap-2 sm:w-full sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {caseStudies.map((caseStudy) => (

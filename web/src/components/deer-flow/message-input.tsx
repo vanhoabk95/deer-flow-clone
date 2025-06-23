@@ -133,8 +133,8 @@ const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(
         Placeholder.configure({
           showOnlyCurrent: false,
           placeholder: provider
-            ? "What can I do for you? \nYou may refer to knowledge bases by using @."
-            : "What can I do for you?",
+            ? "You may refer to knowledge bases by using @."
+            : "",
           emptyEditorClass: "placeholder",
         }),
         Extension.create({

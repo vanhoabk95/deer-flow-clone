@@ -38,15 +38,13 @@ export function Jumbotron() {
           <AuroraText>Begins Here</AuroraText>
         </h1>
         <p className="max-w-4xl p-2 text-center text-sm opacity-85 md:text-2xl">
-          Meet DeerFlow, your personal Deep Research assistant. With powerful
-          tools like search engines, web crawlers, Python and MCP services, it
-          delivers instant insights, comprehensive reports, and even captivating
-          podcasts.
+          Meet Development Agent, your personal AI assistant. It can help you
+          searching on your documents, issues, risk assesment, working guide.
         </p>
         <div className="flex gap-6">
           <Button className="text-lg w-42" size="lg" asChild>
             <Link href="/chat">
-              Get Started <ChevronRight />
+              Start Chat <ChevronRight />
             </Link>
           </Button>
           <Button variant="outline" className="text-lg" size="lg" asChild>
@@ -58,7 +56,7 @@ export function Jumbotron() {
         </div>
       </div>
       <div className="absolute bottom-8 flex text-xs opacity-50">
-        <p>* DEER stands for Deep Exploration and Efficient Research.</p>
+        <p>* for more information, please contact phungvanhoa@lgdisplay.com</p>
       </div>
     </section>
   );
