@@ -5,6 +5,7 @@ from datetime import datetime
 from langchain.chat_models import init_chat_model
 from langchain_tavily import TavilySearch
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, MessagesState, END, START
 from langchain_core.tools import tool
@@ -15,8 +16,11 @@ from openevals.prompts import (
     RAG_HELPFULNESS_PROMPT,
 )
 
-model = ChatGoogleGenerativeAI(
+# Sử dụng ChatOpenAI với cấu hình Google Gemini từ conf.yaml
+model = ChatOpenAI(
+    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
     model="gemini-2.0-flash",
+    api_key="AIzaSyB2ULrNJY75iGN_7waSjZjFRfYfe3T9A_o",
     temperature=0.2
 )
 

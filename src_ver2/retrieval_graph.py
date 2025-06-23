@@ -16,6 +16,7 @@ from langchain_core.messages import AnyMessage, BaseMessage
 from langchain_core.runnables import RunnableConfig, ensure_config
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
 from langchain_ollama import OllamaEmbeddings
 from langgraph.graph import END, START, StateGraph, add_messages
 
@@ -170,17 +171,20 @@ ROUTER_SYSTEM_PROMPT = """You are a LangChain Developer advocate. Your job is he
 
 A user will come to you with an inquiry. Your first job is to classify what type of inquiry it is. The types of inquiries you should classify it as are:
 
-## `more-info`
-Classify a user inquiry as this if you need more information before you will be able to help them. Examples include:
-- The user complains about an error but doesn't provide the error
-- The user says something isn't working but doesn't explain why/how it's not working
-
-## `langchain`
+## 'langchain'
 Classify a user inquiry as this if it can be answered by looking up information related to LangChain open source package. The LangChain open source package \
 is a python library for working with LLMs. It integrates with various LLMs, databases and APIs.
 
-## `general`
-Classify a user inquiry as this if it is just a general question"""
+## 'general'
+Classify a user inquiry as this if it is just a general question not related to LangChain.
+
+You SHOULD NOT include any other text in the response
+
+{
+  "logic": "your logic reasoning here",
+  "type": "langchain" or "general" or "more-info"
+}
+"""
 
 GENERAL_SYSTEM_PROMPT = """You are a LangChain Developer advocate. Your job is help people using LangChain answer any issues they are running into.
 
@@ -250,10 +254,17 @@ def create_chat_model(configuration: RetrievalConfiguration, temperature: float 
     """Create appropriate chat model based on provider configuration."""
     if configuration.llm_provider == "gemini":
         print(f"🤖 Sử dụng Gemini model: {configuration.gemini_model}")
-        return ChatGoogleGenerativeAI(
+        # return ChatGoogleGenerativeAI(
+        #     model=configuration.gemini_model,
+        #     temperature=temperature
+        # )
+        return ChatOpenAI(
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             model=configuration.gemini_model,
+            api_key="AIzaSyB2ULrNJY75iGN_7waSjZjFRfYfe3T9A_o",
             temperature=temperature
         )
+
     elif configuration.llm_provider == "ollama":
         print(f"🦙 Sử dụng Ollama model: {configuration.ollama_model}")
         return ChatOllama(
