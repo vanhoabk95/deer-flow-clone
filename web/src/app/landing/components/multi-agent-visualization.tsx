@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 
 import { Tooltip } from "~/components/deer-flow/tooltip";
 import { ShineBorder } from "~/components/magicui/shine-border";
@@ -52,6 +53,7 @@ export function MultiAgentVisualization({ className }: { className?: string }) {
     activeStepIndex,
     playing,
   } = useMAVStore((state) => state);
+  const { theme, resolvedTheme } = useTheme();
   const flowRef = useRef<ReactFlowInstance<GraphNode, Edge>>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasPlayed, setHasPlayed] = useState(false);
@@ -98,7 +100,7 @@ export function MultiAgentVisualization({ className }: { className?: string }) {
         nodeTypes={nodeTypes}
         fitView
         proOptions={{ hideAttribution: true }}
-        colorMode="dark"
+        colorMode={resolvedTheme === "light" ? "light" : "dark"}
         panOnScroll={false}
         zoomOnScroll={false}
         preventScrolling={false}
@@ -235,10 +237,6 @@ function AgentNode({
       )}
       <Tooltip
         className="max-w-50 text-[15px] font-light opacity-70"
-        style={{
-          ["--primary" as string]: "#333",
-          ["--primary-foreground" as string]: "white",
-        }}
         open={data.active && !!data.stepDescription}
         title={data.stepDescription}
         side={data.stepTooltipPosition}

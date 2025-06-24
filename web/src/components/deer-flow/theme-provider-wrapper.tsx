@@ -15,7 +15,8 @@ export function ThemeProviderWrapper({
   const pathname = usePathname();
   const isChatPage = pathname?.startsWith("/chat");
   const isKnowledgeBasePage = pathname?.startsWith("/knowledge-base");
-  const isThemeToggleEnabledPage = isChatPage || isKnowledgeBasePage;
+  const isLandingPage = pathname === "/";
+  const isThemeToggleEnabledPage = isChatPage || isKnowledgeBasePage || isLandingPage;
 
   return (
     <ThemeProvider

@@ -23,7 +23,7 @@ export function Jumbotron() {
       />
       <FlickeringGrid
         id="deer-hero"
-        className="absolute inset-0 z-0 translate-y-[2vh] mask-[url(/images/deer-hero.svg)] mask-size-[100vw] mask-center mask-no-repeat md:mask-size-[72vh]"
+        className="absolute inset-0 z-0 translate-y-[2vh] mask-[url(/images/cat-2.svg)] mask-size-[100vw] mask-center mask-no-repeat md:mask-size-[72vh]"
         squareSize={3}
         gridGap={6}
         color="#60A5FA"
@@ -32,10 +32,10 @@ export function Jumbotron() {
       />
       <div className="relative z-10 flex flex-col items-center justify-center gap-12">
         <h1 className="text-center text-4xl font-bold md:text-6xl">
-          <span className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+          {/* <span className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
             Your Research{" "}
-          </span>
-          <AuroraText>Begins Here</AuroraText>
+          </span> */}
+          <AuroraText>Your Research Begins Here</AuroraText>
         </h1>
         <p className="max-w-4xl p-2 text-center text-sm opacity-85 md:text-2xl">
           Meet Development Agent, your personal AI assistant. It can help you
