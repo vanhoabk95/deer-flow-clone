@@ -50,8 +50,6 @@ export function CaseStudySection() {
                 Icon: caseStudy.icon,
                 name: caseStudy.title,
                 description: caseStudy.description,
-                href: `/chat`,
-                cta: "Try this research",
                 className: "w-full h-full",
               }}
             />
