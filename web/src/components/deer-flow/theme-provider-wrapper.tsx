@@ -14,13 +14,15 @@ export function ThemeProviderWrapper({
 }) {
   const pathname = usePathname();
   const isChatPage = pathname?.startsWith("/chat");
+  const isKnowledgeBasePage = pathname?.startsWith("/knowledge-base");
+  const isThemeToggleEnabledPage = isChatPage || isKnowledgeBasePage;
 
   return (
     <ThemeProvider
       attribute="class"
       defaultTheme={"dark"}
-      enableSystem={isChatPage}
-      forcedTheme={isChatPage ? undefined : "dark"}
+      enableSystem={isThemeToggleEnabledPage}
+      forcedTheme={isThemeToggleEnabledPage ? undefined : "dark"}
       disableTransitionOnChange
     >
       {children}

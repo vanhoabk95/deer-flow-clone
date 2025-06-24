@@ -15,6 +15,7 @@ import { Badge } from "~/components/ui/badge";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Separator } from "~/components/ui/separator";
 import { Logo } from "~/components/deer-flow/logo";
+import { ThemeToggle } from "~/components/deer-flow/theme-toggle";
 import { SettingsDialog } from "../settings/dialogs/settings-dialog";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -389,6 +390,7 @@ export default function KnowledgeBasePage() {
               <span className="hidden sm:inline">Chat</span>
             </Button>
           </Link>
+          <ThemeToggle />
           <Suspense>
             <SettingsDialog />
           </Suspense>
