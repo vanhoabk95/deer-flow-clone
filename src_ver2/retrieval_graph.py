@@ -6,6 +6,7 @@ using Gemini for chat and Ollama embeddings for retrieval.
 
 import asyncio
 import hashlib
+import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -19,14 +20,8 @@ from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from langchain_ollama import OllamaEmbeddings
 from langgraph.graph import END, START, StateGraph, add_messages
-
-try:
-    from openevals.llm import create_async_llm_as_judge
-    from openevals.prompts import RAG_RETRIEVAL_RELEVANCE_PROMPT
-    OPENEVALS_AVAILABLE = True
-except ImportError:
-    OPENEVALS_AVAILABLE = False
-    print("⚠️ openevals not available, relevance evaluation will be skipped")
+from openevals.llm import create_async_llm_as_judge
+from openevals.prompts import RAG_RETRIEVAL_RELEVANCE_PROMPT
 
 
 # Document utilities
@@ -38,11 +33,14 @@ def _generate_uuid(page_content: str) -> str:
 
 def reduce_docs(
     existing: Optional[list[Document]],
-    new: list[Document] | str | Literal["delete"],
+    new: list[Document] | str | Literal["delete"] | Literal["replace"],
 ) -> list[Document]:
     """Reduce and process documents."""
     if new == "delete":
         return []
+    
+    if new == "replace":
+        return []  # Clear existing documents
     
     existing_list = list(existing) if existing else []
     
@@ -50,7 +48,8 @@ def reduce_docs(
         return existing_list + [Document(page_content=new)]
     
     if isinstance(new, list):
-        return existing_list + new
+        # Replace instead of append for new document lists
+        return new
     
     return existing_list
 
@@ -91,9 +90,16 @@ class RetrievalState(InputState):
     """State for retrieval graph."""
     router: Router = field(default_factory=lambda: Router(type="general", logic=""))
     documents: Annotated[list[Document], reduce_docs] = field(default_factory=list)
+    filtered_documents: Annotated[list[Document], reduce_docs] = field(default_factory=list)
     original_query: str = ""
     generated_queries: list[str] = field(default_factory=list)
     relevance_scores: list[bool] = field(default_factory=list)
+    
+    # Knowledge base path for retrieval
+    knowledge_base: str = field(
+        default="appdata/knowledge_base_test",
+        metadata={"description": "Path to knowledge base folder containing LanceDB"}
+    )
 
 
 @dataclass(kw_only=True)
@@ -102,7 +108,7 @@ class RetrievalConfiguration:
     
     # Provider selection
     llm_provider: Literal["gemini", "ollama"] = field(
-        default="ollama",
+        default="gemini",
         metadata={"description": "LLM provider to use (gemini or ollama)"}
     )
     
@@ -123,9 +129,16 @@ class RetrievalConfiguration:
         metadata={"description": "Ollama embedding model"}
     )
     
-    lancedb_uri: str = field(
-        default="./lancedb",
-        metadata={"description": "LanceDB local path"}
+    # Base directory for all knowledge bases
+    base_appdata_dir: str = field(
+        default="appdata",
+        metadata={"description": "Base directory for all knowledge bases"}
+    )
+    
+    # Default knowledge base name
+    default_knowledge_base: str = field(
+        default="knowledge_base_test",
+        metadata={"description": "Default knowledge base folder name"}
     )
     
     table_name: str = field(
@@ -136,11 +149,6 @@ class RetrievalConfiguration:
     search_kwargs: dict[str, Any] = field(
         default_factory=lambda: {"k": 5},
         metadata={"description": "Search parameters for retriever"}
-    )
-    
-    enable_relevance_filter: bool = field(
-        default=True,
-        metadata={"description": "Enable relevance evaluation and filtering"}
     )
     
     min_relevant_docs: int = field(
@@ -165,41 +173,39 @@ class RetrievalConfiguration:
         configurable = config.get("configurable") or {}
         return cls(**{k: v for k, v in configurable.items() if hasattr(cls, k)})
 
-
 # Prompts (from original prompts.py)
-ROUTER_SYSTEM_PROMPT = """You are a LangChain Developer advocate. Your job is help people using LangChain answer any issues they are running into.
+ROUTER_SYSTEM_PROMPT = """You are a AI assistant. Your job is help people answer any question by searching the knowledge base.
 
 A user will come to you with an inquiry. Your first job is to classify what type of inquiry it is. The types of inquiries you should classify it as are:
 
 ## 'langchain'
-Classify a user inquiry as this if it can be answered by looking up information related to LangChain open source package. The LangChain open source package \
-is a python library for working with LLMs. It integrates with various LLMs, databases and APIs.
+Classify a user inquiry as this if it is not hello or saying hi, if they are asking about something.
 
 ## 'general'
-Classify a user inquiry as this if it is just a general question not related to LangChain.
+Classify a user inquiry as this if it is not a question, just saying hello, etc.
 
 You SHOULD NOT include any other text in the response
 
 {
   "logic": "your logic reasoning here",
-  "type": "langchain" or "general" or "more-info"
+  "type": "langchain" or "general"
 }
 """
 
-GENERAL_SYSTEM_PROMPT = """You are a LangChain Developer advocate. Your job is help people using LangChain answer any issues they are running into.
+GENERAL_SYSTEM_PROMPT = """You are a AI assistant. Your job is help people answer any issues they are running into.
 
-Your boss has determined that the user is asking a general question, not one related to LangChain. This was their logic:
+Your boss has determined that the user is asking a general question, not one related to the knowledge base. This was their logic:
 
 <logic>
 {logic}
 </logic>
 
-Respond to the user. Politely decline to answer and tell them you can only answer questions about LangChain-related topics, and that if their question is about LangChain they should clarify how it is.\
+Respond to the user. Politely decline to answer and tell them you can only answer questions about the knowledge base, and that if their question is about the knowledge base they should clarify how it is.\
 Be nice to them though - they are still a user!"""
 
 RESPONSE_SYSTEM_PROMPT = """\
 You are an expert programmer and problem-solver, tasked with answering any question \
-about LangChain.
+about the knowledge base.
 
 Generate a comprehensive and informative answer for the \
 given question based solely on the provided search results (URL and content). \
@@ -275,10 +281,7 @@ def create_chat_model(configuration: RetrievalConfiguration, temperature: float 
         raise ValueError(f"❌ Provider không được hỗ trợ: {configuration.llm_provider}. Chỉ hỗ trợ 'gemini' hoặc 'ollama'")
 
 def create_relevance_evaluator(model):
-    """Create relevance evaluator if openevals is available."""
-    if not OPENEVALS_AVAILABLE:
-        return None
-    
+    """Create relevance evaluator using openevals."""
     return create_async_llm_as_judge(
         judge=model,
         prompt=RAG_RETRIEVAL_RELEVANCE_PROMPT + f"\n\nThe current date is {current_date}.",
@@ -417,25 +420,46 @@ async def search_documents(
     """Search and retrieve documents using multiple queries."""
     configuration = RetrievalConfiguration.from_runnable_config(config)
     
+    # Clear previous documents and filtered_documents to avoid duplication
+    print("🧹 Clearing previous documents to avoid duplication")
+    
     if not state.generated_queries:
         print("⚠️ No generated queries found, using original query")
         queries = [state.original_query] if state.original_query else [""]
     else:
         queries = state.generated_queries
     
+    # Determine knowledge base path
+    knowledge_base_path = state.knowledge_base
+    if not knowledge_base_path or knowledge_base_path == "":
+        knowledge_base_path = os.path.join(
+            configuration.base_appdata_dir, 
+            configuration.default_knowledge_base
+        )
+    
+    lancedb_path = os.path.join(knowledge_base_path, "lancedb")
+    
+    print(f"🔍 Searching in knowledge base: {knowledge_base_path}")
+    print(f"🗄️ LanceDB path: {lancedb_path}")
+    
     all_documents = []
     seen_content = set()  # For deduplication
     
     try:
+        # Check if knowledge base exists
+        if not os.path.exists(lancedb_path):
+            print(f"❌ Knowledge base LanceDB not found: {lancedb_path}")
+            return {"documents": []}
+        
         # Initialize embeddings and retriever
         embeddings = OllamaEmbeddings(model=configuration.embedding_model)
         
         import lancedb
         from langchain_community.vectorstores import LanceDB
         
-        # Connect to LanceDB
+        # Connect to knowledge base specific LanceDB
         vectorstore = LanceDB(
-            uri=configuration.lancedb_uri,
+            uri=lancedb_path,
             embedding=embeddings,
             table_name=configuration.table_name
         )
@@ -468,7 +492,10 @@ async def search_documents(
         print(f"❌ Error retrieving documents: {e}")
         all_documents = []
     
-    return {"documents": all_documents}
+    return {
+        "documents": all_documents,
+        "filtered_documents": "delete"  # Clear previous filtered documents
+    }
 
 
 async def evaluate_relevance(
@@ -477,19 +504,12 @@ async def evaluate_relevance(
     """Evaluate relevance of retrieved documents using binary classification."""
     configuration = RetrievalConfiguration.from_runnable_config(config)
     
-    if not configuration.enable_relevance_filter or not OPENEVALS_AVAILABLE:
-        print("📝 Relevance evaluation skipped - using all documents")
-        return {"relevance_scores": [True] * len(state.documents)}
-    
     if not state.documents:
         return {"relevance_scores": []}
     
     # Create relevance evaluator
     model = create_chat_model(configuration, temperature=0)
-    
     relevance_evaluator = create_relevance_evaluator(model)
-    if not relevance_evaluator:
-        return {"relevance_scores": [True] * len(state.documents)}
     
     print(f"🧠 Evaluating relevance of {len(state.documents)} documents...")
     
@@ -532,31 +552,32 @@ async def filter_documents(
     """Filter documents based on binary relevance classification."""
     configuration = RetrievalConfiguration.from_runnable_config(config)
     
-    if not configuration.enable_relevance_filter or not state.relevance_scores:
-        return {"documents": state.documents}
-    
-    # Filter documents by binary relevance scores
-    filtered_docs = []
-    
-    for doc, is_relevant in zip(state.documents, state.relevance_scores):
-        if is_relevant:
-            filtered_docs.append(doc)
-    
-    # Ensure we have at least min_relevant_docs if available
-    if len(filtered_docs) == 0 and len(state.documents) > 0:
-        min_docs = min(configuration.min_relevant_docs, len(state.documents))
-        filtered_docs = state.documents[:min_docs]
-        print(f"⚠️ No documents marked as relevant, keeping top {min_docs} document(s)")
+    if not state.relevance_scores:
+        # If no relevance scores, use all documents
+        filtered_docs = state.documents
+    else:
+        # Filter documents by binary relevance scores
+        filtered_docs = []
+        
+        for doc, is_relevant in zip(state.documents, state.relevance_scores):
+            if is_relevant:
+                filtered_docs.append(doc)
+        
+        # Ensure we have at least min_relevant_docs if available
+        if len(filtered_docs) == 0 and len(state.documents) > 0:
+            min_docs = min(configuration.min_relevant_docs, len(state.documents))
+            filtered_docs = state.documents[:min_docs]
+            print(f"⚠️ No documents marked as relevant, keeping top {min_docs} document(s)")
     
     print(f"🔧 Filtered {len(state.documents)} → {len(filtered_docs)} documents (binary relevance)")
     
-    return {"documents": filtered_docs}
+    return {"filtered_documents": filtered_docs}
 
 
 def should_continue_to_response(state: RetrievalState) -> Literal["evaluate_relevance", "generate_response"]:
     """Determine if we should evaluate relevance or go directly to response."""
-    # Default to enabling relevance filter if openevals is available
-    if OPENEVALS_AVAILABLE and state.documents:
+    # Always evaluate relevance if we have documents
+    if state.documents:
         return "evaluate_relevance"
     else:
         return "generate_response"
@@ -571,11 +592,13 @@ async def generate_response(
     # Generate response with context
     model = create_chat_model(configuration, temperature=0.1)
     
-    context = format_docs(state.documents)
+    context = format_docs(state.filtered_documents)
     system_prompt = RESPONSE_SYSTEM_PROMPT.format(context=context)
     messages = [
         {"role": "system", "content": system_prompt}
     ] + [{"role": msg.type, "content": msg.content} for msg in state.messages]
+    
+    print(f"💬 Generating response using {len(state.filtered_documents)} filtered documents")
     
     response = await model.ainvoke(messages)
     return {"messages": [response]}
