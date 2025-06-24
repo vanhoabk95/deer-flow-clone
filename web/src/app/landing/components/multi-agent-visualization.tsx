@@ -21,7 +21,7 @@ import {
   Minimize,
 } from "lucide-react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 
 import { Tooltip } from "~/components/deer-flow/tooltip";
@@ -54,10 +54,16 @@ export function MultiAgentVisualization({ className }: { className?: string }) {
     playing,
   } = useMAVStore((state) => state);
   const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const flowRef = useRef<ReactFlowInstance<GraphNode, Edge>>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasPlayed, setHasPlayed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+
+  // Ensure component is mounted before using theme
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const { ref: anchorRef } = useIntersectionObserver({
     rootMargin: "0%",
     threshold: 0,
@@ -91,6 +97,7 @@ export function MultiAgentVisualization({ className }: { className?: string }) {
       className={cn("flex h-full w-full flex-col pb-4", className)}
     >
       <ReactFlow
+        key={mounted ? resolvedTheme : "loading"}
         className={cn("flex min-h-0 flex-grow")}
         style={{
           ["--xy-background-color-default" as string]: "transparent",
@@ -100,7 +107,7 @@ export function MultiAgentVisualization({ className }: { className?: string }) {
         nodeTypes={nodeTypes}
         fitView
         proOptions={{ hideAttribution: true }}
-        colorMode={resolvedTheme === "light" ? "light" : "dark"}
+        colorMode={!mounted ? "dark" : resolvedTheme === "light" ? "light" : "dark"}
         panOnScroll={false}
         zoomOnScroll={false}
         preventScrolling={false}
