@@ -130,16 +130,17 @@ def main():
             )
             
             # Test search
-            test_query = "sai số"
+            test_query = "user calibration"
             print(f"🔍 Test search với query: '{test_query}'")
             
-            results = vectorstore.similarity_search(test_query, k=2)
+            results = vectorstore.similarity_search(test_query, k=10)
             
             print(f"✅ Tìm thấy {len(results)} kết quả:")
             for idx, doc in enumerate(results, 1):
                 preview = doc.page_content[:150] + "..." if len(doc.page_content) > 150 else doc.page_content
                 print(f"   {idx}. {preview}")
                 print(f"      📄 File: {doc.metadata.get('file_name', 'N/A')}")
+                print(f"      📄 Page: {doc.metadata.get('page_number', 'N/A')}")
                 print()
         
         except Exception as e:

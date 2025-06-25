@@ -156,7 +156,7 @@ async def index_docs(
     
     # If no document paths provided, use default test PDF
     if not document_paths:
-        default_test_pdf = "src_ver2/VH1_DMAIC_1_Introduce_Statistics_Define_Mesure_MBB.pdf"
+        default_test_pdf = "src_ver2/ca-310_instruction_eng.pdf"
         if os.path.exists(default_test_pdf):
             document_paths = [default_test_pdf]
             print(f"📋 No documents specified, using default test PDF: {default_test_pdf}")
