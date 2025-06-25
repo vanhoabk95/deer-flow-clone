@@ -23,11 +23,11 @@ export function Jumbotron() {
       />
       <FlickeringGrid
         id="deer-hero"
-        className="absolute inset-0 z-0 translate-y-[2vh] mask-[url(/images/cat-2.svg)] mask-size-[100vw] mask-center mask-no-repeat md:mask-size-[72vh]"
+        className="absolute inset-0 z-0 translate-y-[-13vh] translate-x-[2vw] mask-[url(/images/LG_logo_4.svg)] mask-size-[120vw] mask-center mask-no-repeat md:mask-size-[150vh]"
         squareSize={3}
         gridGap={6}
         color="#60A5FA"
-        maxOpacity={0.64}
+        maxOpacity={0.90}
         flickerChance={0.12}
       />
       <div className="relative z-10 flex flex-col items-center justify-center gap-12">
