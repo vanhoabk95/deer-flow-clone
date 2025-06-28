@@ -78,7 +78,6 @@ async def chat_stream(request: ChatRequest):
             request.max_search_results,
             request.auto_accepted_plan,
             request.interrupt_feedback,
-            {},  # Empty dict instead of mcp_settings
             request.report_style,
         ),
         media_type="text/event-stream",
@@ -94,7 +93,6 @@ async def _astream_workflow_generator(
     max_search_results: int,
     auto_accepted_plan: bool,
     interrupt_feedback: str,
-    mcp_settings: dict,  # Keeping parameter for backward compatibility but will ignore
     report_style: ReportStyle,
 ):
     input_ = {
@@ -120,7 +118,6 @@ async def _astream_workflow_generator(
             "max_plan_iterations": max_plan_iterations,
             "max_step_num": max_step_num,
             "max_search_results": max_search_results,
-            # "mcp_settings": mcp_settings,  # Removed MCP settings
             "report_style": report_style.value,
         },
         stream_mode=["messages", "updates"],
@@ -190,23 +187,6 @@ def _make_event(event_type: str, data: dict[str, any]):
         data.pop("content")
     return f"event: {event_type}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
-
-# @app.post("/api/tts")  # TTS endpoint removed
-# async def text_to_speech(request: TTSRequest):
-#     """Convert text to speech using volcengine TTS API."""
-#     pass  # TTS functionality completely removed
-
-
-# @app.post("/api/podcast/generate")  # Podcast endpoint removed
-# async def generate_podcast(request: GeneratePodcastRequest):
-#     pass  # Podcast functionality completely removed
-
-
-# @app.post("/api/ppt/generate")  # PPT endpoint removed
-# async def generate_ppt(request: GeneratePPTRequest):
-#     pass  # PPT functionality completely removed
-
-
 @app.post("/api/prose/generate")
 async def generate_prose(request: GenerateProseRequest):
     try:
@@ -229,14 +209,6 @@ async def generate_prose(request: GenerateProseRequest):
     except Exception as e:
         logger.exception(f"Error occurred during prose generation: {str(e)}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR_DETAIL)
-
-
-# @app.post("/api/prompt/enhance")  # Prompt enhancer endpoint removed
-# async def enhance_prompt(request: EnhancePromptRequest):
-#     pass  # Prompt enhancer functionality completely removed
-
-
-
 
 
 @app.get("/api/rag/config", response_model=RAGConfigResponse)

@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
-import { Bird, Microscope, Usb, User } from "lucide-react";
+import { Bird, Microscope, User } from "lucide-react";
 // import { Podcast } from "lucide-react";  // Podcast removed
 
 import { BentoCard, BentoGrid } from "~/components/magicui/bento-grid";
@@ -45,30 +45,6 @@ const features = [
     ),
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2",
   },
-  {
-    Icon: Usb,
-    name: "MCP Integrations",
-    description:
-      "Supercharge your research workflow and expand your toolkit with seamless MCP integrations.",
-    href: "#",
-    cta: "Learn more",
-    background: (
-      <img alt="background" className="absolute -top-20 -right-20 opacity-60" />
-    ),
-    className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3",
-  },
-  // {  // Podcast feature removed
-  //   Icon: Podcast,
-  //   name: "Podcast Generation",
-  //   description:
-  //     "Instantly generate podcasts from reports. Perfect for on-the-go learning or sharing findings effortlessly.  ",
-  //   href: "https://github.com/bytedance/deer-flow/blob/main/src/podcast",
-  //   cta: "Learn more",
-  //   background: (
-  //     <img alt="background" className="absolute -top-20 -right-20 opacity-60" />
-  //   ),
-  //   className: "lg:col-start-2 lg:col-end-3 lg:row-start-3 lg:row-end-4",
-  // },
 ];
 
 export function CoreFeatureSection() {

@@ -24,7 +24,7 @@ import {
   AccordionTrigger,
 } from "~/components/ui/accordion";
 import { Skeleton } from "~/components/ui/skeleton";
-// import { findMCPTool } from "~/core/mcp";  // MCP removed
+
 import type { ToolCallRuntime } from "~/core/messages";
 import { useMessage, useStore } from "~/core/store";
 import { parseJSON } from "~/core/utils";
@@ -98,9 +98,6 @@ function ActivityListItem({ messageId }: { messageId: string }) {
           return <PythonToolCall key={toolCall.id} toolCall={toolCall} />;
         } else if (toolCall.name === "local_search_tool") {
           return <RetrieverToolCall key={toolCall.id} toolCall={toolCall} />;
-        } else {
-          // return <MCPToolCall key={toolCall.id} toolCall={toolCall} />;  // MCP removed
-          return null;
         }
       }
     }
@@ -419,48 +416,3 @@ function PythonToolCallResult({ result }: { result: string }) {
     </>
   );
 }
-
-// function MCPToolCall({ toolCall }: { toolCall: ToolCallRuntime }) {  // MCP removed
-//   const tool = useMemo(() => findMCPTool(toolCall.name), [toolCall.name]);
-//   const { resolvedTheme } = useTheme();
-//   return (
-//     <section className="mt-4 pl-4">
-//       <div className="w-fit overflow-y-auto rounded-md py-0">
-//         <Accordion type="single" collapsible className="w-full">
-//           <AccordionItem value="item-1">
-//             <AccordionTrigger>
-//               <Tooltip title={tool?.description}>
-//                 <div className="flex items-center font-medium italic">
-//                   <PencilRuler size={16} className={"mr-2"} />
-//                   <RainbowText
-//                     className="pr-0.5 text-base font-medium italic"
-//                     animated={toolCall.result === undefined}
-//                   >
-//                     Running {toolCall.name ? toolCall.name + "()" : "MCP tool"}
-//                   </RainbowText>
-//                 </div>
-//               </Tooltip>
-//             </AccordionTrigger>
-//             <AccordionContent>
-//               {toolCall.result && (
-//                 <div className="bg-accent max-h-[400px] max-w-[560px] overflow-y-auto rounded-md text-sm">
-//                   <SyntaxHighlighter
-//                     language="json"
-//                     style={resolvedTheme === "dark" ? dark : docco}
-//                     customStyle={{
-//                       background: "transparent",
-//                       border: "none",
-//                       boxShadow: "none",
-//                     }}
-//                   >
-//                     {toolCall.result.trim()}
-//                   </SyntaxHighlighter>
-//                 </div>
-//               )}
-//             </AccordionContent>
-//           </AccordionItem>
-//         </Accordion>
-//       </div>
-//     </section>
-//   );
-// }

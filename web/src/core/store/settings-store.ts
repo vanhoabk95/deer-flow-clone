@@ -3,56 +3,25 @@
 
 import { create } from "zustand";
 
-// Define MCP types locally since the mcp module is empty
-interface MCPServerMetadata {
-  name: string;
-  enabled: boolean;
-  transport: string;
-  env?: Record<string, string>;
-  command?: string;
-  args?: string[];
-  url?: string;
-  tools: Array<{ name: string }>;
-}
-
-interface SimpleMCPServerMetadata {
-  name: string;
-  transport: string;
-  env?: Record<string, string>;
-  command?: string;
-  args?: string[];
-  url?: string;
-}
-
 const SETTINGS_KEY = "deerflow.settings";
 
 const DEFAULT_SETTINGS: SettingsState = {
   general: {
     autoAcceptedPlan: false,
-
-
     maxPlanIterations: 1,
     maxStepNum: 3,
     maxSearchResults: 3,
-          reportStyle: "issue_history",
-  },
-  mcp: {
-    servers: [],
+    reportStyle: "issue_history",
   },
 };
 
 export type SettingsState = {
   general: {
     autoAcceptedPlan: boolean;
-
-
     maxPlanIterations: number;
     maxStepNum: number;
     maxSearchResults: number;
     reportStyle: "issue_history" | "risk_assessment" | "working_guide" | "common_knowledge";
-  };
-  mcp: {
-    servers: MCPServerMetadata[];
   };
 };
 
@@ -97,59 +66,14 @@ export const saveSettings = () => {
 };
 
 export const getChatStreamSettings = () => {
-  let mcpSettings:
-    | {
-        servers: Record<
-          string,
-          MCPServerMetadata & {
-            enabled_tools: string[];
-            add_to_agents: string[];
-          }
-        >;
-      }
-    | undefined = undefined;
-  const { mcp, general } = useSettingsStore.getState();
-  const mcpServers = mcp.servers.filter((server) => server.enabled);
-  if (mcpServers.length > 0) {
-    mcpSettings = {
-      servers: mcpServers.reduce((acc, cur) => {
-        const { transport, env } = cur;
-        let server: SimpleMCPServerMetadata;
-        if (transport === "stdio") {
-          server = {
-            name: cur.name,
-            transport,
-            env,
-            command: cur.command,
-            args: cur.args,
-          };
-        } else {
-          server = {
-            name: cur.name,
-            transport,
-            env,
-            url: cur.url,
-          };
-        }
-        return {
-          ...acc,
-          [cur.name]: {
-            ...server,
-            enabled_tools: cur.tools.map((tool) => tool.name),
-            add_to_agents: ["researcher"],
-          },
-        };
-      }, {}),
-    };
-  }
+  const { general } = useSettingsStore.getState();
   return {
     ...general,
-    mcpSettings,
   };
 };
 
 export function setReportStyle(
-      value: "issue_history" | "risk_assessment" | "working_guide" | "common_knowledge",
+  value: "issue_history" | "risk_assessment" | "working_guide" | "common_knowledge",
 ) {
   useSettingsStore.setState((state) => ({
     general: {
@@ -159,8 +83,5 @@ export function setReportStyle(
   }));
   saveSettings();
 }
-
-
-
 
 loadSettings();

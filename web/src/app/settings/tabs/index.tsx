@@ -5,9 +5,9 @@ import { Settings, type LucideIcon } from "lucide-react";
 
 import { AboutTab } from "./about-tab";
 import { GeneralTab } from "./general-tab";
-// import { MCPTab } from "./mcp-tab";  // MCP removed
 
-export const SETTINGS_TABS = [GeneralTab, AboutTab].map((tab) => {  // Removed MCPTab
+
+export const SETTINGS_TABS = [GeneralTab, AboutTab].map((tab) => {
   const name = tab.displayName ?? tab.name;
   return {
     ...tab,

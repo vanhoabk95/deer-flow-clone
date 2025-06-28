@@ -2,13 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 import { env } from "~/env";
-
-// Define MCP types locally since the mcp module is empty
-interface MCPServerMetadata {
-  transport?: string;
-  command?: string;
-  args?: string[];
-}
 import type { Resource } from "../messages";
 import { fetchStream } from "../sse";
 
@@ -25,18 +18,7 @@ export async function* chatStream(
     max_step_num: number;
     max_search_results?: number;
     interrupt_feedback?: string;
-    
-  
     report_style?: "issue_history" | "risk_assessment" | "working_guide" | "common_knowledge";
-    mcp_settings?: {
-      servers: Record<
-        string,
-        MCPServerMetadata & {
-          enabled_tools: string[];
-          add_to_agents: string[];
-        }
-      >;
-    };
   },
   options: { abortSignal?: AbortSignal } = {},
 ) {

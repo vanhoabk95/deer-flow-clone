@@ -10,7 +10,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from langgraph.types import Command, interrupt
-# from langchain_mcp_adapters.client import MultiServerMCPClient  # Removed MCP import
+
 
 from src.agents import create_agent
 from src.tools.search import LoggedTavilySearch
@@ -373,7 +373,7 @@ async def _setup_and_execute_agent_step(
     """Helper function to set up an agent with appropriate tools and execute a step.
 
     This function handles the common logic for both researcher_node and coder_node:
-    1. Creates an agent with the default tools (MCP support removed)
+    1. Creates an agent with the default tools
     2. Executes the agent on the current step
 
     Args:
@@ -385,7 +385,6 @@ async def _setup_and_execute_agent_step(
     Returns:
         Command to update state and go to research_team
     """
-    # MCP functionality removed - just use default tools
     agent = create_agent(agent_type, agent_type, default_tools, agent_type)
     return await _execute_agent_step(state, agent, agent_type)
 
@@ -420,3 +419,6 @@ async def coder_node(
         "coder",
         [python_repl_tool],
     )
+
+
+
