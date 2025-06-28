@@ -6,7 +6,6 @@ from typing import Any, Dict
 import os
 
 from langchain_openai import ChatOpenAI
-from langchain_deepseek import ChatDeepSeek
 from typing import get_args
 
 from src.config import load_yaml_config
@@ -24,7 +23,6 @@ def _get_config_file_path() -> str:
 def _get_llm_type_config_keys() -> dict[str, str]:
     """Get mapping of LLM types to their configuration keys."""
     return {
-        "reasoning": "REASONING_MODEL",
         "basic": "BASIC_MODEL",
         "vision": "VISION_MODEL",
     }
@@ -47,7 +45,7 @@ def _get_env_llm_conf(llm_type: str) -> Dict[str, Any]:
 
 def _create_llm_use_conf(
     llm_type: LLMType, conf: Dict[str, Any]
-) -> ChatOpenAI | ChatDeepSeek:
+) -> ChatOpenAI:
     """Create LLM instance using configuration."""
     llm_type_config_keys = _get_llm_type_config_keys()
     config_key = llm_type_config_keys.get(llm_type)
@@ -68,14 +66,7 @@ def _create_llm_use_conf(
     if not merged_conf:
         raise ValueError(f"No configuration found for LLM type: {llm_type}")
 
-    if llm_type == "reasoning":
-        merged_conf["api_base"] = merged_conf.pop("base_url", None)
-
-    return (
-        ChatOpenAI(**merged_conf)
-        if llm_type != "reasoning"
-        else ChatDeepSeek(**merged_conf)
-    )
+    return ChatOpenAI(**merged_conf)
 
 
 def get_llm_by_type(
@@ -130,6 +121,5 @@ def get_configured_llm_models() -> dict[str, list[str]]:
         return {}
 
 
-# In the future, we will use reasoning_llm and vl_llm for different purposes
-# reasoning_llm = get_llm_by_type("reasoning")
+# In the future, we will use vl_llm for vision purposes
 # vl_llm = get_llm_by_type("vision")

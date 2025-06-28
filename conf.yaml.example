@@ -10,11 +10,4 @@ BASIC_MODEL:
   model: "doubao-1-5-pro-32k-250115"
   api_key: xxxx
 
-# Reasoning model is optional.
-# Uncomment the following settings if you want to use reasoning model
-# for planning.
 
-# REASONING_MODEL:
-#   base_url: https://ark-cn-beijing.bytedance.net/api/v3
-#   model: "doubao-1-5-thinking-pro-m-250428"
-#   api_key: xxxx

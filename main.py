@@ -16,7 +16,6 @@ def ask(
     debug=False,
     max_plan_iterations=1,
     max_step_num=3,
-    enable_background_investigation=True,
 ):
     """Run the agent workflow with the given question.
 
@@ -25,7 +24,6 @@ def ask(
         debug: If True, enables debug level logging
         max_plan_iterations: Maximum number of plan iterations
         max_step_num: Maximum number of steps in a plan
-        enable_background_investigation: If True, performs web search before planning to enhance context
     """
     asyncio.run(
         run_agent_workflow_async(
@@ -33,7 +31,6 @@ def ask(
             debug=debug,
             max_plan_iterations=max_plan_iterations,
             max_step_num=max_step_num,
-            enable_background_investigation=enable_background_investigation,
         )
     )
 
@@ -55,12 +52,7 @@ if __name__ == "__main__":
         help="Maximum number of steps in a plan (default: 3)",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-    parser.add_argument(
-        "--no-background-investigation",
-        action="store_false",
-        dest="enable_background_investigation",
-        help="Disable background investigation before planning",
-    )
+
 
     args = parser.parse_args()
 
@@ -76,5 +68,4 @@ if __name__ == "__main__":
         debug=args.debug,
         max_plan_iterations=args.max_plan_iterations,
         max_step_num=args.max_step_num,
-        enable_background_investigation=args.enable_background_investigation,
     )

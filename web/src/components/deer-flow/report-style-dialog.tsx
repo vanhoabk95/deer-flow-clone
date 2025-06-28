@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import { useState } from "react";
-import { Check, FileText, Newspaper, Users, GraduationCap, FileSearch, ClipboardPenLine, FlaskConical, ContactRound } from "lucide-react";
+import { Check, FileSearch, ClipboardPenLine, FlaskConical, ContactRound } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -19,30 +19,6 @@ import { cn } from "~/lib/utils";
 import { Tooltip } from "./tooltip";
 
 const REPORT_STYLES = [
-  {
-    value: "academic" as const,
-    label: "Academic",
-    description: "Formal, objective, and analytical with precise terminology",
-    icon: GraduationCap,
-  },
-  {
-    value: "popular_science" as const,
-    label: "Popular Science",
-    description: "Engaging and accessible for general audience",
-    icon: FileText,
-  },
-  {
-    value: "news" as const,
-    label: "News",
-    description: "Factual, concise, and impartial journalistic style",
-    icon: Newspaper,
-  },
-  {
-    value: "social_media" as const,
-    label: "Social Media",
-    description: "Concise, attention-grabbing, and shareable",
-    icon: Users,
-  },
   {
     value: "issue_history" as const,
     label: "Issue History",
@@ -74,7 +50,7 @@ export function ReportStyleDialog() {
   const currentStyle = useSettingsStore((state) => state.general.reportStyle);
 
   const handleStyleChange = (
-    style: "academic" | "popular_science" | "news" | "social_media",
+    style: "issue_history" | "risk_assessment" | "working_guide" | "common_knowledge",
   ) => {
     setReportStyle(style);
     setOpen(false);

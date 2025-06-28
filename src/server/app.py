@@ -79,9 +79,7 @@ async def chat_stream(request: ChatRequest):
             request.auto_accepted_plan,
             request.interrupt_feedback,
             {},  # Empty dict instead of mcp_settings
-            request.enable_background_investigation,
             request.report_style,
-            request.enable_deep_thinking,
         ),
         media_type="text/event-stream",
     )
@@ -97,9 +95,7 @@ async def _astream_workflow_generator(
     auto_accepted_plan: bool,
     interrupt_feedback: str,
     mcp_settings: dict,  # Keeping parameter for backward compatibility but will ignore
-    enable_background_investigation: bool,
     report_style: ReportStyle,
-    enable_deep_thinking: bool,
 ):
     input_ = {
         "messages": messages,
@@ -108,7 +104,6 @@ async def _astream_workflow_generator(
         "current_plan": None,
         "observations": [],
         "auto_accepted_plan": auto_accepted_plan,
-        "enable_background_investigation": enable_background_investigation,
         "research_topic": messages[-1]["content"] if messages else "",
     }
     if not auto_accepted_plan and interrupt_feedback:
@@ -127,7 +122,6 @@ async def _astream_workflow_generator(
             "max_search_results": max_search_results,
             # "mcp_settings": mcp_settings,  # Removed MCP settings
             "report_style": report_style.value,
-            "enable_deep_thinking": enable_deep_thinking,
         },
         stream_mode=["messages", "updates"],
         subgraphs=True,

@@ -29,12 +29,12 @@ const SETTINGS_KEY = "deerflow.settings";
 const DEFAULT_SETTINGS: SettingsState = {
   general: {
     autoAcceptedPlan: false,
-    enableDeepThinking: false,
-    enableBackgroundInvestigation: false,
+
+
     maxPlanIterations: 1,
     maxStepNum: 3,
     maxSearchResults: 3,
-    reportStyle: "academic",
+          reportStyle: "issue_history",
   },
   mcp: {
     servers: [],
@@ -44,12 +44,12 @@ const DEFAULT_SETTINGS: SettingsState = {
 export type SettingsState = {
   general: {
     autoAcceptedPlan: boolean;
-    enableDeepThinking: boolean;
-    enableBackgroundInvestigation: boolean;
+
+
     maxPlanIterations: number;
     maxStepNum: number;
     maxSearchResults: number;
-    reportStyle: "academic" | "popular_science" | "news" | "social_media";
+    reportStyle: "issue_history" | "risk_assessment" | "working_guide" | "common_knowledge";
   };
   mcp: {
     servers: MCPServerMetadata[];
@@ -149,7 +149,7 @@ export const getChatStreamSettings = () => {
 };
 
 export function setReportStyle(
-  value: "academic" | "popular_science" | "news" | "social_media",
+      value: "issue_history" | "risk_assessment" | "working_guide" | "common_knowledge",
 ) {
   useSettingsStore.setState((state) => ({
     general: {
@@ -160,23 +160,7 @@ export function setReportStyle(
   saveSettings();
 }
 
-export function setEnableDeepThinking(value: boolean) {
-  useSettingsStore.setState((state) => ({
-    general: {
-      ...state.general,
-      enableDeepThinking: value,
-    },
-  }));
-  saveSettings();
-}
 
-export function setEnableBackgroundInvestigation(value: boolean) {
-  useSettingsStore.setState((state) => ({
-    general: {
-      ...state.general,
-      enableBackgroundInvestigation: value,
-    },
-  }));
-  saveSettings();
-}
+
+
 loadSettings();

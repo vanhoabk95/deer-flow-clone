@@ -27,8 +27,8 @@ class Configuration:
     def mcp_settings(self) -> dict:
         """Return empty dict for backward compatibility."""
         return {}
-    report_style: str = ReportStyle.ACADEMIC.value  # Report style
-    enable_deep_thinking: bool = False  # Whether to enable deep thinking
+    report_style: str = ReportStyle.ISSUE_HISTORY.value  # Report style
+
 
     @classmethod
     def from_runnable_config(

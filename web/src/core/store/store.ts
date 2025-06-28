@@ -105,9 +105,8 @@ export async function sendMessage(
       interrupt_feedback: interruptFeedback,
       resources,
       auto_accepted_plan: settings.autoAcceptedPlan,
-      enable_deep_thinking: settings.enableDeepThinking ?? false,
-      enable_background_investigation:
-        settings.enableBackgroundInvestigation ?? true,
+      
+
       max_plan_iterations: settings.maxPlanIterations,
       max_step_num: settings.maxStepNum,
       max_search_results: settings.maxSearchResults,

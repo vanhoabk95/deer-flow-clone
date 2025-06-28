@@ -4,7 +4,7 @@
 from typing import Literal
 
 # Define available LLM types
-LLMType = Literal["basic", "reasoning", "vision"]
+LLMType = Literal["basic", "vision"]
 
 # Define agent-LLM mapping
 AGENT_LLM_MAP: dict[str, LLMType] = {
@@ -13,8 +13,5 @@ AGENT_LLM_MAP: dict[str, LLMType] = {
     "researcher": "basic",
     "coder": "basic",
     "reporter": "basic",
-    # "podcast_script_writer": "basic",  # Podcast removed
-    # "ppt_composer": "basic",  # PPT removed
     "prose_writer": "basic",
-    # "prompt_enhancer": "basic",  # Prompt enhancer removed
 }

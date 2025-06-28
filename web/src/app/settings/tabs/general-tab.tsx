@@ -35,9 +35,9 @@ const generalFormSchema = z.object({
     message: "Max search results must be at least 1.",
   }),
   // Others
-  enableBackgroundInvestigation: z.boolean(),
-  enableDeepThinking: z.boolean(),
-  reportStyle: z.enum(["academic", "popular_science", "news", "social_media"]),
+  
+  
+      reportStyle: z.enum(["issue_history", "risk_assessment", "working_guide", "common_knowledge"]),
 });
 
 export const GeneralTab: Tab = ({

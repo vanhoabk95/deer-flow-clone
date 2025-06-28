@@ -2,7 +2,7 @@ import enum
 
 
 class ReportStyle(enum.Enum):
-    ACADEMIC = "academic"
-    POPULAR_SCIENCE = "popular_science"
-    NEWS = "news"
-    SOCIAL_MEDIA = "social_media"
+    ISSUE_HISTORY = "issue_history"
+    RISK_ASSESSMENT = "risk_assessment"
+    WORKING_GUIDE = "working_guide"
+    COMMON_KNOWLEDGE = "common_knowledge"
