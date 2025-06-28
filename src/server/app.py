@@ -236,18 +236,16 @@ async def config():
 
 
 # ============================================================================
-# Knowledge Base Endpoints (Simple in-memory implementation for demo)
+# Knowledge Base Endpoints (Using LocalKnowledgeBaseProvider)
 # ============================================================================
-
-# Simple in-memory storage for demo purposes
-knowledge_bases = {}
-documents = {}
-document_counter = 0
-kb_counter = 0
 
 from datetime import datetime
 from fastapi import UploadFile, File, Form
 from pydantic import BaseModel
+from src.rag.local_knowledge_base import LocalKnowledgeBaseProvider
+
+# Initialize knowledge base provider
+kb_provider = LocalKnowledgeBaseProvider()
 
 class KnowledgeBase(BaseModel):
     id: str
@@ -264,83 +262,89 @@ class Document(BaseModel):
     file_name: str
     file_type: str
     file_size: int
-    status: str = "ready"  # uploading, indexing, ready, error
+    status: str = "ready"  # pending, processing, ready, error
     error_message: str = ""
     created_at: str
     updated_at: str
+    processing_started_at: str = None
+    processing_completed_at: str = None
 
 class CreateKnowledgeBaseRequest(BaseModel):
     name: str
     description: str = ""
 
+class UpdateDocumentStatusRequest(BaseModel):
+    status: str  # pending, processing, ready, error
+    error_message: str = ""
+
 @app.get("/api/knowledge-bases")
 async def list_knowledge_bases():
     """Get all knowledge bases."""
-    return list(knowledge_bases.values())
+    try:
+        kbs = kb_provider.get_knowledge_bases()
+        return [KnowledgeBase(**kb) for kb in kbs]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing knowledge bases: {str(e)}")
 
 @app.post("/api/knowledge-bases")
 async def create_knowledge_base(request: CreateKnowledgeBaseRequest):
     """Create a new knowledge base."""
-    global kb_counter
-    kb_counter += 1
-    kb_id = f"kb_{kb_counter}"
-    now = datetime.now().isoformat()
-    
-    kb = KnowledgeBase(
-        id=kb_id,
-        name=request.name,
-        description=request.description,
-        created_at=now,
-        updated_at=now,
-        document_count=0
-    )
-    knowledge_bases[kb_id] = kb
-    documents[kb_id] = []
-    return kb
+    try:
+        kb_id = kb_provider.create_knowledge_base(request.name, request.description)
+        
+        # Get the created KB metadata
+        kbs = kb_provider.get_knowledge_bases()
+        for kb in kbs:
+            if kb["id"] == kb_id:
+                return KnowledgeBase(**kb)
+        
+        raise HTTPException(status_code=500, detail="Knowledge base created but not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating knowledge base: {str(e)}")
 
 @app.put("/api/knowledge-bases/{kb_id}")
 async def update_knowledge_base(kb_id: str, request: CreateKnowledgeBaseRequest):
     """Update a knowledge base."""
-    if kb_id not in knowledge_bases:
-        raise HTTPException(status_code=404, detail="Knowledge base not found")
-    
-    kb = knowledge_bases[kb_id]
-    kb.name = request.name
-    kb.description = request.description
-    kb.updated_at = datetime.now().isoformat()
-    return kb
+    # For now, just return not implemented
+    # TODO: Implement update functionality in LocalKnowledgeBaseProvider
+    raise HTTPException(status_code=501, detail="Update knowledge base not implemented yet")
 
 @app.delete("/api/knowledge-bases/{kb_id}")
 async def delete_knowledge_base(kb_id: str):
     """Delete a knowledge base."""
-    if kb_id not in knowledge_bases:
-        raise HTTPException(status_code=404, detail="Knowledge base not found")
-    
-    del knowledge_bases[kb_id]
-    if kb_id in documents:
-        del documents[kb_id]
-    return {"message": "Knowledge base deleted successfully"}
+    # For now, just return not implemented  
+    # TODO: Implement delete functionality in LocalKnowledgeBaseProvider
+    raise HTTPException(status_code=501, detail="Delete knowledge base not implemented yet")
 
 @app.get("/api/knowledge-bases/search")
 async def search_knowledge_bases(query: str = ""):
     """Search knowledge bases by name or description."""
-    if not query:
-        return list(knowledge_bases.values())
-    
-    query_lower = query.lower()
-    result = []
-    for kb in knowledge_bases.values():
-        if (query_lower in kb.name.lower() or 
-            query_lower in kb.description.lower()):
-            result.append(kb)
-    return result
+    try:
+        resources = kb_provider.list_resources(query if query else None)
+        kbs = []
+        for resource in resources:
+            kb_id = resource.uri.replace("kb://", "")
+            kbs.append({
+                "id": kb_id,
+                "name": resource.title,
+                "description": resource.description,
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat(),
+                "document_count": 0
+            })
+        return [KnowledgeBase(**kb) for kb in kbs]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error searching knowledge bases: {str(e)}")
 
 @app.get("/api/knowledge-bases/{kb_id}/documents")
 async def list_documents(kb_id: str):
     """Get all documents in a knowledge base."""
-    if kb_id not in knowledge_bases:
-        raise HTTPException(status_code=404, detail="Knowledge base not found")
-    return documents.get(kb_id, [])
+    try:
+        # Get documents from knowledge base
+        documents = kb_provider.get_documents(kb_id)
+        return [Document(**doc) for doc in documents]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing documents: {str(e)}")
 
 @app.post("/api/knowledge-bases/{kb_id}/documents")
 async def upload_document(
@@ -349,65 +353,159 @@ async def upload_document(
     knowledge_base_id: str = Form(...)
 ):
     """Upload a document to a knowledge base."""
-    if kb_id not in knowledge_bases:
-        raise HTTPException(status_code=404, detail="Knowledge base not found")
-    
-    global document_counter
-    document_counter += 1
-    doc_id = f"doc_{document_counter}"
-    now = datetime.now().isoformat()
-    
-    # Read file content (for demo, we just store metadata)
-    content = await file.read()
-    
-    doc = Document(
-        id=doc_id,
-        knowledge_base_id=kb_id,
-        name=file.filename or f"Document {document_counter}",
-        file_name=file.filename or f"document_{document_counter}",
-        file_type=file.content_type or "application/octet-stream",
-        file_size=len(content),
-        status="ready",  # For demo, immediately mark as ready
-        created_at=now,
-        updated_at=now
-    )
-    
-    if kb_id not in documents:
-        documents[kb_id] = []
-    documents[kb_id].append(doc)
-    
-    # Update document count
-    knowledge_bases[kb_id].document_count = len(documents[kb_id])
-    knowledge_bases[kb_id].updated_at = now
-    
-    return doc
+    try:
+        # Check if knowledge base exists
+        kbs = kb_provider.get_knowledge_bases()
+        if not any(kb["id"] == kb_id for kb in kbs):
+            raise HTTPException(status_code=404, detail="Knowledge base not found")
+        
+        # Save uploaded file
+        kb_path = os.path.join(kb_provider.appdata_path, kb_id)
+        docs_path = os.path.join(kb_path, "documents")
+        
+        if not os.path.exists(docs_path):
+            os.makedirs(docs_path, exist_ok=True)
+        
+        file_path = os.path.join(docs_path, file.filename)
+        
+        # Check if file already exists
+        if os.path.exists(file_path):
+            raise HTTPException(status_code=409, detail="File already exists")
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        # Update document status to pending
+        kb_provider.update_document_status(kb_id, file.filename, "pending")
+        
+        # Get the created document metadata
+        doc = kb_provider.get_document_status(kb_id, file.filename)
+        if doc:
+            return Document(**doc)
+        
+        raise HTTPException(status_code=500, detail="Document uploaded but metadata not found")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading document: {str(e)}")
 
 @app.get("/api/knowledge-bases/{kb_id}/documents/{doc_id}")
 async def get_document_status(kb_id: str, doc_id: str):
-    """Get document status."""
-    if kb_id not in knowledge_bases:
-        raise HTTPException(status_code=404, detail="Knowledge base not found")
-    
-    kb_docs = documents.get(kb_id, [])
-    for doc in kb_docs:
-        if doc.id == doc_id:
-            return doc
-    
-    raise HTTPException(status_code=404, detail="Document not found")
+    """Get document status by document ID."""
+    try:
+        # Get all documents and find by doc_id
+        documents = kb_provider.get_documents(kb_id)
+        for doc in documents:
+            if doc["id"] == doc_id:
+                return Document(**doc)
+        
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting document status: {str(e)}")
 
 @app.delete("/api/knowledge-bases/{kb_id}/documents/{doc_id}")
 async def delete_document(kb_id: str, doc_id: str):
     """Delete a document from a knowledge base."""
-    if kb_id not in knowledge_bases:
-        raise HTTPException(status_code=404, detail="Knowledge base not found")
-    
-    kb_docs = documents.get(kb_id, [])
-    for i, doc in enumerate(kb_docs):
-        if doc.id == doc_id:
-            del kb_docs[i]
-            # Update document count
-            knowledge_bases[kb_id].document_count = len(kb_docs)
-            knowledge_bases[kb_id].updated_at = datetime.now().isoformat()
-            return {"message": "Document deleted successfully"}
-    
-    raise HTTPException(status_code=404, detail="Document not found")
+    try:
+        # Get document by ID to find filename
+        documents = kb_provider.get_documents(kb_id)
+        target_doc = None
+        for doc in documents:
+            if doc["id"] == doc_id:
+                target_doc = doc
+                break
+        
+        if not target_doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        filename = target_doc["file_name"]
+        
+        # Delete document completely (files, metadata, and vectorstore)
+        success = kb_provider.delete_document_complete(kb_id, filename)
+        
+        if success:
+            return {"message": "Document deleted successfully from all locations"}
+        else:
+            return {"message": "Document deleted with some warnings - check server logs"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting document: {str(e)}")
+
+@app.put("/api/knowledge-bases/{kb_id}/documents/{doc_id}/status")
+async def update_document_status(kb_id: str, doc_id: str, request: UpdateDocumentStatusRequest):
+    """Update document processing status."""
+    try:
+        # Get document by ID to find filename
+        documents = kb_provider.get_documents(kb_id)
+        target_doc = None
+        for doc in documents:
+            if doc["id"] == doc_id:
+                target_doc = doc
+                break
+        
+        if not target_doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        filename = target_doc["file_name"]
+        
+        # Update status
+        kb_provider.update_document_status(kb_id, filename, request.status, request.error_message)
+        
+        # Get updated document
+        updated_doc = kb_provider.get_document_status(kb_id, filename)
+        if updated_doc:
+            return Document(**updated_doc)
+        
+        raise HTTPException(status_code=500, detail="Status updated but document not found")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating document status: {str(e)}")
+
+@app.get("/api/knowledge-bases/{kb_id}/documents/by-filename/{filename}")
+async def get_document_by_filename(kb_id: str, filename: str):
+    """Get document status by filename."""
+    try:
+        doc = kb_provider.get_document_status(kb_id, filename)
+        if doc:
+            return Document(**doc)
+        
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting document: {str(e)}")
+
+# ============================================================================
+# Debug Endpoints for Vectorstore Management
+# ============================================================================
+
+@app.get("/api/knowledge-bases/{kb_id}/vectorstore/info")
+async def get_vectorstore_info(kb_id: str):
+    """Get vectorstore information for debugging."""
+    try:
+        info = kb_provider.get_vectorstore_info(kb_id)
+        return info
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting vectorstore info: {str(e)}")
+
+@app.get("/api/knowledge-bases/{kb_id}/documents/by-filename/{filename}/vector-count")
+async def count_document_vectors(kb_id: str, filename: str):
+    """Count vector records for a specific document."""
+    try:
+        count = kb_provider.count_document_records(kb_id, filename)
+        if count == -1:
+            return {"filename": filename, "vector_count": "error", "message": "Error counting records"}
+        return {"filename": filename, "vector_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error counting document vectors: {str(e)}")

@@ -21,6 +21,7 @@ SELECTED_SEARCH_ENGINE = os.getenv("SEARCH_API", SearchEngine.TAVILY.value)
 
 class RAGProvider(enum.Enum):
     RAGFLOW = "ragflow"
+    LOCAL_KB = "local_kb"
 
 
-SELECTED_RAG_PROVIDER = os.getenv("RAG_PROVIDER")
+SELECTED_RAG_PROVIDER = os.getenv("RAG_PROVIDER", RAGProvider.LOCAL_KB.value)
