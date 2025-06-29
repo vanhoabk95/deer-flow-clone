@@ -1,17 +1,10 @@
 # Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
 # SPDX-License-Identifier: MIT
 
-from src.config.tools import SELECTED_RAG_PROVIDER, RAGProvider
 from src.rag.retriever import Retriever
 
 
-def build_retriever() -> Retriever | None:
-    if SELECTED_RAG_PROVIDER == RAGProvider.RAGFLOW.value:
-        from src.rag.ragflow import RAGFlowProvider
-        return RAGFlowProvider()
-    elif SELECTED_RAG_PROVIDER == RAGProvider.LOCAL_KB.value:
-        from src.knowledge_base import LocalKnowledgeBaseProvider
-        return LocalKnowledgeBaseProvider()
-    elif SELECTED_RAG_PROVIDER:
-        raise ValueError(f"Unsupported RAG provider: {SELECTED_RAG_PROVIDER}")
-    return None
+def build_retriever() -> Retriever:
+    """Build and return local knowledge base retriever."""
+    from src.knowledge_base import LocalKnowledgeBaseProvider
+    return LocalKnowledgeBaseProvider()

@@ -1,0 +1,24 @@
+{
+  "id": "test_knowledgebase",
+  "name": "test knowledgebase",
+  "description": "test knowledgebase",
+  "created_at": "2025-06-29T15:56:23.478019",
+  "updated_at": "2025-06-29T16:01:56.108812",
+  "document_count": 1,
+  "documents": [
+    {
+      "id": "doc_539fda87",
+      "knowledge_base_id": "test_knowledgebase",
+      "name": "Phan phoi chuan_test",
+      "file_name": "Phan phoi chuan_test.pdf",
+      "file_type": "application/pdf",
+      "file_size": 482928,
+      "status": "ready",
+      "error_message": "",
+      "created_at": "2025-06-29T15:56:50.660186",
+      "updated_at": "2025-06-29T15:56:52.841808",
+      "processing_started_at": "2025-06-29T15:56:50.661818",
+      "processing_completed_at": "2025-06-29T15:56:52.841810"
+    }
+  ]
+}

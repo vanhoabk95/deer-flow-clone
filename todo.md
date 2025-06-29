@@ -1,3 +1,4 @@
+[ ] Cải tiến schema vector database hỗ trợ việc xoá bản ghi khi xoá tài liệu
 [ ] Cải tiến index graph xử lý các loại tài liệu khác
 [ ] Cải tiến index graph lưu trữ meta data
 [ ] Cải tiến retrieval graph áp dụng hybrid search

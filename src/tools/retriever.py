@@ -10,7 +10,7 @@ from langchain_core.callbacks import (
 )
 from pydantic import BaseModel, Field
 
-from src.config.tools import SELECTED_RAG_PROVIDER
+from src.config.tools import RAG_PROVIDER
 from src.rag.retriever import Document, Retriever, Resource
 from src.rag.builder import build_retriever
 
@@ -78,7 +78,7 @@ class RetrieverTool(BaseTool):
 def get_retriever_tool(resources: List[Resource]) -> Optional[RetrieverTool]:
     if not resources:
         return None
-    logger.info(f"create retriever tool: {SELECTED_RAG_PROVIDER}")
+    logger.info(f"create retriever tool: {RAG_PROVIDER}")
     retriever = build_retriever()
 
     if not retriever:

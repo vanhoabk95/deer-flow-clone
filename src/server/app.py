@@ -18,20 +18,12 @@ from langchain_core.messages import AIMessageChunk, ToolMessage, BaseMessage
 from langgraph.types import Command
 
 from src.config.report_style import ReportStyle
-from src.config.tools import SELECTED_RAG_PROVIDER
 from src.graph.builder import build_graph_with_memory
 from src.prose.graph.builder import build_graph as build_prose_graph
-from src.rag.builder import build_retriever
 from src.rag.retriever import Resource
 from src.server.chat_request import (
     ChatRequest,
     GenerateProseRequest,
-)
-
-from src.server.rag_request import (
-    RAGConfigResponse,
-    RAGResourceRequest,
-    RAGResourcesResponse,
 )
 from src.server.config_request import ConfigResponse
 from src.llms.llm import get_configured_llm_models
@@ -206,26 +198,10 @@ async def generate_prose(request: GenerateProseRequest):
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR_DETAIL)
 
 
-@app.get("/api/rag/config", response_model=RAGConfigResponse)
-async def rag_config():
-    """Get the config of the RAG."""
-    return RAGConfigResponse(provider=SELECTED_RAG_PROVIDER)
-
-
-@app.get("/api/rag/resources", response_model=RAGResourcesResponse)
-async def rag_resources(request: Annotated[RAGResourceRequest, Query()]):
-    """Get the resources of the RAG."""
-    retriever = build_retriever()
-    if retriever:
-        return RAGResourcesResponse(resources=retriever.list_resources(request.query))
-    return RAGResourcesResponse(resources=[])
-
-
 @app.get("/api/config", response_model=ConfigResponse)
 async def config():
     """Get the config of the server."""
     return ConfigResponse(
-        rag=RAGConfigResponse(provider=SELECTED_RAG_PROVIDER),
         models=get_configured_llm_models(),
     )
 

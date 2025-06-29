@@ -32,14 +32,12 @@ export function Jumbotron() {
       />
       <div className="relative z-10 flex flex-col items-center justify-center gap-12">
         <h1 className="text-center text-4xl font-bold md:text-6xl">
-          {/* <span className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-            Your Research{" "}
-          </span> */}
-          <AuroraText>Your Research Begins Here</AuroraText>
+          <AuroraText>AI Assistant For Development Engineers</AuroraText>
         </h1>
         <p className="max-w-4xl p-2 text-center text-sm opacity-85 md:text-2xl">
           Meet Development Agent, your personal AI assistant. It can help you
-          searching on your documents, issues, risk assesment, working guide.
+          searching on your documents, issues, risk assesment, working guide,
+          and more.
         </p>
         <div className="flex gap-6">
           <Button className="text-lg w-42" size="lg" asChild>

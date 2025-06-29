@@ -194,18 +194,12 @@ SEARCH_API=tavily
   - Crawling with Jina
   - Advanced content extraction
 
-- 📃 **RAG Integration**
+- 📃 **Local Knowledge Base**
 
-  - Supports mentioning files from [RAGFlow](https://github.com/infiniflow/ragflow) within the input box. [Start up RAGFlow server](https://ragflow.io/docs/dev/).
-
-  ```bash
-     # .env
-     RAG_PROVIDER=ragflow
-     RAGFLOW_API_URL="http://localhost:9388"
-     RAGFLOW_API_KEY="ragflow-xxx"
-     RAGFLOW_RETRIEVAL_SIZE=10
-  ```
-
+  - Built-in local knowledge base for private domain access
+  - Document upload and processing (PDF, TXT, MD, DOCX)
+  - Vector-based document retrieval
+  - Automatic document indexing and search
 
   - Expand capabilities for private domain access, knowledge graph, web browsing and more
   - Facilitates integration of diverse research tools and methodologies

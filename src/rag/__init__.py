@@ -3,13 +3,11 @@
 
 from .retriever import Retriever, Resource, Document, Chunk
 from .builder import build_retriever
-from .ragflow import RAGFlowProvider
 
 __all__ = [
     "Retriever",
     "Resource", 
     "Document",
     "Chunk",
-    "build_retriever",
-    "RAGFlowProvider"
+    "build_retriever"
 ]

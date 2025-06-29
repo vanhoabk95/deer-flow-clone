@@ -18,10 +18,5 @@ class SearchEngine(enum.Enum):
 # Tool configuration
 SELECTED_SEARCH_ENGINE = os.getenv("SEARCH_API", SearchEngine.TAVILY.value)
 
-
-class RAGProvider(enum.Enum):
-    RAGFLOW = "ragflow"
-    LOCAL_KB = "local_kb"
-
-
-SELECTED_RAG_PROVIDER = os.getenv("RAG_PROVIDER", RAGProvider.LOCAL_KB.value)
+# Always use local knowledge base for RAG
+RAG_PROVIDER = "local_kb"
