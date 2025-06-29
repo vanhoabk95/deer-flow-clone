@@ -82,7 +82,7 @@ def create_sample_knowledge_base():
     """Create a sample knowledge base for testing"""
     print("📚 Creating sample knowledge base...")
     
-    from rag.local_knowledge_base import LocalKnowledgeBaseProvider
+    from src.knowledge_base import LocalKnowledgeBaseProvider
     
     provider = LocalKnowledgeBaseProvider()
     

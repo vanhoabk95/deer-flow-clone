@@ -86,7 +86,15 @@ export async function uploadDocument(
     }
   );
   if (!response.ok) {
-    throw new Error(`Failed to upload document: ${response.statusText}`);
+    // Try to get detailed error message from response body
+    try {
+      const errorData = await response.json();
+      const errorMessage = errorData.detail || response.statusText;
+      throw new Error(`${response.status}: ${errorMessage}`);
+    } catch (parseError) {
+      // If can't parse JSON, use generic message
+      throw new Error(`Failed to upload document: ${response.statusText}`);
+    }
   }
   return response.json();
 }

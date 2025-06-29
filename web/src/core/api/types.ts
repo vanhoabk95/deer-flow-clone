@@ -82,3 +82,39 @@ export type ChatEvent =
   | ToolCallChunksEvent
   | ToolCallResultEvent
   | InterruptEvent;
+
+// Knowledge Base Types
+
+export interface KnowledgeBase {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  document_count: number;
+}
+
+export interface Document {
+  id: string;
+  knowledge_base_id: string;
+  name: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  status: "pending" | "processing" | "ready" | "error";
+  error_message: string;
+  created_at: string;
+  updated_at: string;
+  processing_started_at?: string;
+  processing_completed_at?: string;
+}
+
+export interface CreateKnowledgeBaseRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UploadDocumentRequest {
+  knowledge_base_id: string;
+  file: File;
+}

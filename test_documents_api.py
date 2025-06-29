@@ -65,7 +65,7 @@ def test_local_provider():
     print("=" * 60)
     
     try:
-        from rag.local_knowledge_base import LocalKnowledgeBaseProvider
+        from src.knowledge_base import LocalKnowledgeBaseProvider
         
         # Initialize provider
         provider = LocalKnowledgeBaseProvider()

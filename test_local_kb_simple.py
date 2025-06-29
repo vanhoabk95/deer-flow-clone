@@ -16,7 +16,7 @@ def test_imports():
     print("🔍 Testing imports...")
     
     try:
-        from rag.local_knowledge_base import LocalKnowledgeBaseProvider
+        from src.knowledge_base import LocalKnowledgeBaseProvider
         print("✅ LocalKnowledgeBaseProvider import OK")
     except Exception as e:
         print(f"❌ LocalKnowledgeBaseProvider import failed: {e}")

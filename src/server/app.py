@@ -5,10 +5,13 @@ import base64
 import json
 import logging
 import os
-from typing import Annotated, List, cast
+from datetime import datetime
+from typing import Annotated, List, Optional, cast
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel
+
+from fastapi import FastAPI, HTTPException, Query, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from langchain_core.messages import AIMessageChunk, ToolMessage, BaseMessage
@@ -17,19 +20,12 @@ from langgraph.types import Command
 from src.config.report_style import ReportStyle
 from src.config.tools import SELECTED_RAG_PROVIDER
 from src.graph.builder import build_graph_with_memory
-# from src.podcast.graph.builder import build_graph as build_podcast_graph  # Podcast removed
-# from src.ppt.graph.builder import build_graph as build_ppt_graph  # PPT removed
 from src.prose.graph.builder import build_graph as build_prose_graph
-# from src.prompt_enhancer.graph.builder import build_graph as build_prompt_enhancer_graph  # Prompt enhancer removed
 from src.rag.builder import build_retriever
 from src.rag.retriever import Resource
 from src.server.chat_request import (
     ChatRequest,
-    # EnhancePromptRequest,  # Prompt enhancer removed
-    # GeneratePodcastRequest,  # Podcast removed
-    # GeneratePPTRequest,  # PPT removed
     GenerateProseRequest,
-    # TTSRequest,  # TTS removed
 )
 
 from src.server.rag_request import (
@@ -39,7 +35,6 @@ from src.server.rag_request import (
 )
 from src.server.config_request import ConfigResponse
 from src.llms.llm import get_configured_llm_models
-# from src.tools import VolcengineTTS  # TTS removed
 
 logger = logging.getLogger(__name__)
 
@@ -239,10 +234,7 @@ async def config():
 # Knowledge Base Endpoints (Using LocalKnowledgeBaseProvider)
 # ============================================================================
 
-from datetime import datetime
-from fastapi import UploadFile, File, Form
-from pydantic import BaseModel
-from src.rag.local_knowledge_base import LocalKnowledgeBaseProvider
+from src.knowledge_base import LocalKnowledgeBaseProvider
 
 # Initialize knowledge base provider
 kb_provider = LocalKnowledgeBaseProvider()
@@ -266,16 +258,12 @@ class Document(BaseModel):
     error_message: str = ""
     created_at: str
     updated_at: str
-    processing_started_at: str = None
-    processing_completed_at: str = None
+    processing_started_at: Optional[str] = None
+    processing_completed_at: Optional[str] = None
 
 class CreateKnowledgeBaseRequest(BaseModel):
     name: str
     description: str = ""
-
-class UpdateDocumentStatusRequest(BaseModel):
-    status: str  # pending, processing, ready, error
-    error_message: str = ""
 
 @app.get("/api/knowledge-bases")
 async def list_knowledge_bases():
@@ -312,9 +300,14 @@ async def update_knowledge_base(kb_id: str, request: CreateKnowledgeBaseRequest)
 @app.delete("/api/knowledge-bases/{kb_id}")
 async def delete_knowledge_base(kb_id: str):
     """Delete a knowledge base."""
-    # For now, just return not implemented  
-    # TODO: Implement delete functionality in LocalKnowledgeBaseProvider
-    raise HTTPException(status_code=501, detail="Delete knowledge base not implemented yet")
+    try:
+        success = kb_provider.delete_knowledge_base(kb_id)
+        if success:
+            return {"message": "Knowledge base deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Knowledge base not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting knowledge base: {str(e)}")
 
 @app.get("/api/knowledge-bases/search")
 async def search_knowledge_bases(query: str = ""):
@@ -370,15 +363,22 @@ async def upload_document(
         
         # Check if file already exists
         if os.path.exists(file_path):
-            raise HTTPException(status_code=409, detail="File already exists")
+            raise HTTPException(
+                status_code=409, 
+                detail=f"Tài liệu '{file.filename}' đã tồn tại trong knowledge base này. Vui lòng đổi tên file hoặc xóa tài liệu cũ trước khi upload."
+            )
         
         # Save file
         with open(file_path, "wb") as buffer:
             content = await file.read()
             buffer.write(content)
         
-        # Update document status to pending
-        kb_provider.update_document_status(kb_id, file.filename, "pending")
+        # Add document metadata (this sets status to "pending")
+        kb_provider.metadata_manager.add_document_metadata(kb_id, file.filename)
+        
+        # Process document in background (convert to markdown and index)
+        import asyncio
+        asyncio.create_task(kb_provider.process_document(kb_id, file.filename))
         
         # Get the created document metadata
         doc = kb_provider.get_document_status(kb_id, file.filename)
@@ -438,74 +438,3 @@ async def delete_document(kb_id: str, doc_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting document: {str(e)}")
-
-@app.put("/api/knowledge-bases/{kb_id}/documents/{doc_id}/status")
-async def update_document_status(kb_id: str, doc_id: str, request: UpdateDocumentStatusRequest):
-    """Update document processing status."""
-    try:
-        # Get document by ID to find filename
-        documents = kb_provider.get_documents(kb_id)
-        target_doc = None
-        for doc in documents:
-            if doc["id"] == doc_id:
-                target_doc = doc
-                break
-        
-        if not target_doc:
-            raise HTTPException(status_code=404, detail="Document not found")
-        
-        filename = target_doc["file_name"]
-        
-        # Update status
-        kb_provider.update_document_status(kb_id, filename, request.status, request.error_message)
-        
-        # Get updated document
-        updated_doc = kb_provider.get_document_status(kb_id, filename)
-        if updated_doc:
-            return Document(**updated_doc)
-        
-        raise HTTPException(status_code=500, detail="Status updated but document not found")
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error updating document status: {str(e)}")
-
-@app.get("/api/knowledge-bases/{kb_id}/documents/by-filename/{filename}")
-async def get_document_by_filename(kb_id: str, filename: str):
-    """Get document status by filename."""
-    try:
-        doc = kb_provider.get_document_status(kb_id, filename)
-        if doc:
-            return Document(**doc)
-        
-        raise HTTPException(status_code=404, detail="Document not found")
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error getting document: {str(e)}")
-
-# ============================================================================
-# Debug Endpoints for Vectorstore Management
-# ============================================================================
-
-@app.get("/api/knowledge-bases/{kb_id}/vectorstore/info")
-async def get_vectorstore_info(kb_id: str):
-    """Get vectorstore information for debugging."""
-    try:
-        info = kb_provider.get_vectorstore_info(kb_id)
-        return info
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error getting vectorstore info: {str(e)}")
-
-@app.get("/api/knowledge-bases/{kb_id}/documents/by-filename/{filename}/vector-count")
-async def count_document_vectors(kb_id: str, filename: str):
-    """Count vector records for a specific document."""
-    try:
-        count = kb_provider.count_document_records(kb_id, filename)
-        if count == -1:
-            return {"filename": filename, "vector_count": "error", "message": "Error counting records"}
-        return {"filename": filename, "vector_count": count}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error counting document vectors: {str(e)}")

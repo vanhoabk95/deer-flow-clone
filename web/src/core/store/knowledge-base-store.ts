@@ -20,7 +20,6 @@ interface KnowledgeBaseStore {
   knowledgeBases: KnowledgeBase[];
   documents: Map<string, Document[]>; // Map<knowledgeBaseId, Document[]>
   loading: boolean;
-  uploadingFiles: Map<string, { fileName: string; progress: number }>; // Map<fileId, upload status>
 
   // Knowledge Base actions
   fetchKnowledgeBases: () => Promise<void>;
@@ -44,7 +43,6 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
   knowledgeBases: [],
   documents: new Map(),
   loading: false,
-  uploadingFiles: new Map(),
 
   // Knowledge Base actions
   fetchKnowledgeBases: async () => {
@@ -118,46 +116,34 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
   },
 
   uploadDocument: async (knowledgeBaseId: string, file: File) => {
-    const fileId = `${knowledgeBaseId}-${file.name}-${Date.now()}`;
-    
-    // Add to uploading files
-    set((state) => ({
-      uploadingFiles: new Map(state.uploadingFiles).set(fileId, { 
-        fileName: file.name, 
-        progress: 0 
-      })
-    }));
-
     try {
       const document = await uploadDocument({ knowledge_base_id: knowledgeBaseId, file });
-      
-      // Update documents list
+
+      // Update documents list with the returned document
       const currentDocuments = get().documents.get(knowledgeBaseId) || [];
       set((state) => ({
         documents: new Map(state.documents).set(knowledgeBaseId, [...currentDocuments, document])
       }));
 
-      // Remove from uploading files
-      set((state) => {
-        const newUploadingFiles = new Map(state.uploadingFiles);
-        newUploadingFiles.delete(fileId);
-        return { uploadingFiles: newUploadingFiles };
-      });
+      toast.success(`Đã upload thành công tài liệu '${file.name}'`);
 
-      toast.success(`Successfully uploaded ${file.name}`);
-
-      // Start polling for indexing status
+      // Start polling for processing status immediately
       get().pollDocumentStatus(knowledgeBaseId, document.id);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to upload document:", error);
-      toast.error(`Unable to upload ${file.name}`);
       
-      // Remove from uploading files
-      set((state) => {
-        const newUploadingFiles = new Map(state.uploadingFiles);
-        newUploadingFiles.delete(fileId);
-        return { uploadingFiles: newUploadingFiles };
-      });
+      // Handle specific error cases
+      if (error.message && error.message.includes("409:")) {
+        // Extract detailed message from server response
+        const serverMessage = error.message.split("409:")[1]?.trim();
+        if (serverMessage && serverMessage.includes("Tài liệu")) {
+          toast.error(serverMessage);
+        } else {
+          toast.error(`Tài liệu '${file.name}' đã tồn tại trong knowledge base này. Vui lòng đổi tên file hoặc xóa tài liệu cũ.`);
+        }
+      } else {
+        toast.error(`Không thể upload tài liệu '${file.name}'. Vui lòng thử lại.`);
+      }
     }
   },
 
@@ -171,16 +157,16 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
           currentDocuments.filter(doc => doc.id !== documentId)
         )
       }));
-      toast.success("Document deleted successfully");
+      toast.success("Tài liệu đã được xóa thành công");
     } catch (error) {
       console.error("Failed to delete document:", error);
-      toast.error("Unable to delete document");
+      toast.error("Không thể xóa tài liệu. Vui lòng thử lại.");
     }
   },
 
   pollDocumentStatus: async (knowledgeBaseId: string, documentId: string) => {
-    const pollInterval = 2000; // 2 seconds
-    const maxPolls = 30; // Max 1 minute
+    const pollInterval = 500; // 500ms - faster polling for better UX
+    const maxPolls = 120; // Max 1 minute (120 * 500ms)
     let pollCount = 0;
 
     const poll = async () => {
@@ -189,31 +175,46 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
         
         // Update document in store
         const currentDocuments = get().documents.get(knowledgeBaseId) || [];
-        set((state) => ({
-          documents: new Map(state.documents).set(
-            knowledgeBaseId,
-            currentDocuments.map(doc => doc.id === documentId ? document : doc)
-          )
-        }));
+        const docIndex = currentDocuments.findIndex(doc => doc.id === documentId);
+        
+        if (docIndex !== -1) {
+          // Update existing document
+          const updatedDocuments = [...currentDocuments];
+          updatedDocuments[docIndex] = document;
+          
+          set((state) => ({
+            documents: new Map(state.documents).set(knowledgeBaseId, updatedDocuments)
+          }));
+        } else {
+          // Add new document if not found
+          set((state) => ({
+            documents: new Map(state.documents).set(knowledgeBaseId, [...currentDocuments, document])
+          }));
+        }
 
+        // Check final status
         if (document.status === 'ready') {
-          toast.success(`Document ${document.name} indexed successfully`);
+          toast.success(`Tài liệu '${document.name}' đã được xử lý và lập chỉ mục thành công`);
           return;
         } else if (document.status === 'error') {
-          toast.error(`Error indexing document ${document.name}: ${document.error_message}`);
+          toast.error(`Lỗi khi xử lý tài liệu '${document.name}': ${document.error_message}`);
           return;
         }
 
-        // Continue polling if still indexing
-        if (document.status === 'indexing' && pollCount < maxPolls) {
+        // Continue polling for any non-final status
+        if (['pending', 'processing'].includes(document.status) && pollCount < maxPolls) {
           pollCount++;
           setTimeout(poll, pollInterval);
+        } else if (pollCount >= maxPolls) {
+          toast.warning(`Tài liệu '${document.name}' đang mất nhiều thời gian xử lý hơn dự kiến. Vui lòng kiểm tra lại sau.`);
         }
       } catch (error) {
         console.error("Failed to poll document status:", error);
+        // Stop polling on error
       }
     };
 
+    // Start polling immediately
     poll();
   },
 

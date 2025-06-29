@@ -44,24 +44,34 @@ class RetrieverTool(BaseTool):
         
         documents = self.retriever.query_relevant_documents(keywords, self.resources)
         if not documents:
-            return "No results found from the local knowledge base."
+            logger.info("No documents found, returning empty array")
+            return "[]"  # Return empty JSON array instead of text
         
-        # Format results as string for agent consumption
-        result_lines = []
+        # Format results as JSON for frontend consumption
+        import json
+        result_docs = []
         for doc in documents:
-            result_lines.append(f"Document: {doc.title}")
-            for chunk in doc.chunks:
-                result_lines.append(f"Content: {chunk.content}")
-                result_lines.append(f"Similarity: {chunk.similarity}")
-            result_lines.append("---")
+            # Combine all chunks into content
+            combined_content = "\n\n".join([chunk.content for chunk in doc.chunks])
+            
+            result_docs.append({
+                "id": doc.id,
+                "title": doc.title,
+                "content": combined_content
+            })
         
-        return "\n".join(result_lines)
+        result_json = json.dumps(result_docs, ensure_ascii=False)
+        logger.info(f"Returning {len(result_docs)} documents as JSON, length: {len(result_json)}")
+        return result_json
 
     async def _arun(
         self,
         keywords: str,
         run_manager: Optional[AsyncCallbackManagerForToolRun] = None,
     ) -> str:
+        logger.info(
+            f"Async retriever tool query: {keywords}", extra={"resources": self.resources}
+        )
         return self._run(keywords, run_manager.get_sync() if run_manager else None)
 
 

@@ -4,7 +4,6 @@
 from .retriever import Retriever, Resource, Document, Chunk
 from .builder import build_retriever
 from .ragflow import RAGFlowProvider
-from .local_knowledge_base import LocalKnowledgeBaseProvider
 
 __all__ = [
     "Retriever",
@@ -12,6 +11,5 @@ __all__ = [
     "Document",
     "Chunk",
     "build_retriever",
-    "RAGFlowProvider",
-    "LocalKnowledgeBaseProvider"
+    "RAGFlowProvider"
 ]

@@ -283,7 +283,28 @@ function RetrieverToolCall({ toolCall }: { toolCall: ToolCallRuntime }) {
   const documents = useMemo<
     Array<{ id: string; title: string; content: string }>
   >(() => {
-    return toolCall.result ? parseJSON(toolCall.result, []) : [];
+    if (!toolCall.result) return [];
+    
+    // Try to parse as JSON first
+    const parsed = parseJSON(toolCall.result, null);
+    if (parsed && Array.isArray(parsed)) {
+      return parsed;
+    }
+    
+    // If not JSON, check if it's a text response that indicates no results
+    const resultText = toolCall.result.toLowerCase();
+    if (resultText.includes('no results') || resultText.includes('no documents')) {
+      return [];
+    }
+    
+    // Log for debugging if we get unexpected format
+    console.warn('RetrieverToolCall: Unexpected result format:', {
+      type: typeof toolCall.result,
+      length: toolCall.result.length,
+      preview: toolCall.result.substring(0, 200) + (toolCall.result.length > 200 ? '...' : '')
+    });
+    
+    return [];
   }, [toolCall.result]);
   return (
     <section className="mt-4 pl-4">
