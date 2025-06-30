@@ -76,12 +76,23 @@ class VectorSearchManager:
                 doc_groups[doc_id] = Document(
                     id=doc_id,
                     title=doc_title,
-                    chunks=[]
+                    chunks=[],
+                    metadata={
+                        "file_type": metadata.get("file_type", ""),
+                        "file_name": metadata.get("file_name", doc_title),
+                        "file_path": metadata.get("file_path", ""),
+                        "knowledge_base": metadata.get("knowledge_base", ""),
+                    }
                 )
             
             chunk = Chunk(
                 content=lc_doc.page_content,
-                similarity=similarity
+                similarity=similarity,
+                metadata={
+                    "page_number": metadata.get("page_number"),
+                    "file_type": metadata.get("file_type", ""),
+                    "chunk_index": metadata.get("chunk_index", 0),
+                }
             )
             doc_groups[doc_id].chunks.append(chunk)
         

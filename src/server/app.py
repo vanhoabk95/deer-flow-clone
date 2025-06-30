@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 from fastapi import FastAPI, HTTPException, Query, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import Response, StreamingResponse, FileResponse
 from langchain_core.messages import AIMessageChunk, ToolMessage, BaseMessage
 from langgraph.types import Command
 
@@ -414,3 +414,36 @@ async def delete_document(kb_id: str, doc_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting document: {str(e)}")
+
+
+# ============================================================================
+# PDF Serving Endpoint for PDF Preview
+# ============================================================================
+
+@app.get("/api/knowledge-bases/{kb_id}/documents/{file_name}/pdf")
+async def serve_pdf_file(kb_id: str, file_name: str):
+    """Serve PDF file for preview."""
+    try:
+        # Construct file path
+        kb_path = os.path.join(kb_provider.appdata_path, kb_id)
+        file_path = os.path.join(kb_path, "documents", file_name)
+        
+        # Check if file exists and is PDF
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="PDF file not found")
+        
+        file_ext = os.path.splitext(file_name)[1].lower()
+        if file_ext != '.pdf':
+            raise HTTPException(status_code=400, detail="File is not a PDF")
+        
+        # Return PDF file
+        return FileResponse(
+            path=file_path,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"inline; filename={file_name}"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error serving PDF file: {str(e)}")

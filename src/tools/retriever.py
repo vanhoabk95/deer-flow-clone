@@ -54,11 +54,32 @@ class RetrieverTool(BaseTool):
             # Combine all chunks into content
             combined_content = "\n\n".join([chunk.content for chunk in doc.chunks])
             
-            result_docs.append({
+            # Collect PDF-specific metadata
+            pdf_pages = []
+            is_pdf = doc.metadata.get("file_type", "").lower() == ".pdf"
+            
+            if is_pdf:
+                # Extract unique pages from chunks
+                page_set = set()
+                for chunk in doc.chunks:
+                    page_num = chunk.metadata.get("page_number")
+                    if page_num is not None:
+                        page_set.add(page_num)
+                pdf_pages = sorted(list(page_set))
+            
+            result_doc = {
                 "id": doc.id,
                 "title": doc.title,
-                "content": combined_content
-            })
+                "content": combined_content,
+                "metadata": {
+                    "file_type": doc.metadata.get("file_type", ""),
+                    "file_name": doc.metadata.get("file_name", doc.title),
+                    "knowledge_base": doc.metadata.get("knowledge_base", ""),
+                    "is_pdf": is_pdf,
+                    "pdf_pages": pdf_pages if is_pdf else [],
+                }
+            }
+            result_docs.append(result_doc)
         
         result_json = json.dumps(result_docs, ensure_ascii=False)
         logger.info(f"Returning {len(result_docs)} documents as JSON, length: {len(result_json)}")

@@ -30,6 +30,8 @@ import { useMessage, useStore } from "~/core/store";
 import { parseJSON } from "~/core/utils";
 import { cn } from "~/lib/utils";
 
+import { PDFPreview } from "./pdf-preview";
+
 export function ResearchActivitiesBlock({
   className,
   researchId,
@@ -202,33 +204,34 @@ function WebSearchToolCall({ toolCall }: { toolCall: ToolCallRuntime }) {
                   </a>
                 </motion.li>
               ))}
-            {imageResults.map((searchResult, i) => (
-              <motion.li
-                key={`search-result-${i}`}
-                initial={{ opacity: 0, y: 10, scale: 0.66 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{
-                  duration: 0.2,
-                  delay: i * 0.1,
-                  ease: "easeOut",
-                }}
-              >
-                <a
-                  className="flex flex-col gap-2 overflow-hidden rounded-md opacity-75 transition-opacity duration-300 hover:opacity-100"
-                  href={searchResult.image_url}
-                  target="_blank"
+          </ul>
+        )}
+        {imageResults && imageResults.length > 0 && (
+          <div className="mt-4">
+            <div className="text-muted-foreground text-sm italic">Images:</div>
+            <ul className="mt-2 flex flex-wrap gap-4">
+              {imageResults.map((result, i) => (
+                <motion.li
+                  key={`image-result-${i}`}
+                  className="text-muted-foreground bg-accent flex h-40 w-40 flex-col gap-2 rounded-md px-2 py-1 text-sm"
+                  initial={{ opacity: 0, y: 10, scale: 0.66 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{
+                    duration: 0.2,
+                    delay: i * 0.1,
+                    ease: "easeOut",
+                  }}
                 >
                   <Image
-                    src={searchResult.image_url}
-                    alt={searchResult.image_description}
-                    className="bg-accent h-40 w-40 max-w-full rounded-md bg-cover bg-center bg-no-repeat"
-                    imageClassName="hover:scale-110"
-                    imageTransition
+                    className="h-24 w-36 rounded object-cover"
+                    src={result.image_url}
+                    alt={result.image_description}
                   />
-                </a>
-              </motion.li>
-            ))}
-          </ul>
+                  <span className="text-xs">{result.image_description}</span>
+                </motion.li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
     </section>
@@ -281,7 +284,18 @@ function RetrieverToolCall({ toolCall }: { toolCall: ToolCallRuntime }) {
     return toolCall.result === undefined;
   }, [toolCall.result]);
   const documents = useMemo<
-    Array<{ id: string; title: string; content: string }>
+    Array<{ 
+      id: string; 
+      title: string; 
+      content: string;
+      metadata?: {
+        file_type?: string;
+        file_name?: string;
+        knowledge_base?: string;
+        is_pdf?: boolean;
+        pdf_pages?: number[];
+      };
+    }>
   >(() => {
     if (!toolCall.result) return [];
     
@@ -306,6 +320,7 @@ function RetrieverToolCall({ toolCall }: { toolCall: ToolCallRuntime }) {
     
     return [];
   }, [toolCall.result]);
+  
   return (
     <section className="mt-4 pl-4">
       <div className="font-medium italic">
@@ -335,7 +350,7 @@ function RetrieverToolCall({ toolCall }: { toolCall: ToolCallRuntime }) {
             {documents.map((doc, i) => (
               <motion.li
                 key={`search-result-${i}`}
-                className="text-muted-foreground bg-accent flex max-w-40 gap-2 rounded-md px-2 py-1 text-sm"
+                className="flex flex-col gap-2 w-full"
                 initial={{ opacity: 0, y: 10, scale: 0.66 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{
@@ -344,8 +359,20 @@ function RetrieverToolCall({ toolCall }: { toolCall: ToolCallRuntime }) {
                   ease: "easeOut",
                 }}
               >
-                <FileText size={32} />
-                {doc.title}
+                {/* PDF Preview or regular document card */}
+                {doc.metadata?.is_pdf && doc.metadata?.pdf_pages && doc.metadata.pdf_pages.length > 0 ? (
+                  <PDFPreview
+                    fileName={doc.metadata.file_name || doc.title}
+                    knowledgeBase={doc.metadata.knowledge_base || ""}
+                    pages={doc.metadata.pdf_pages}
+                    height={500}
+                  />
+                ) : (
+                  <div className="text-muted-foreground bg-accent flex max-w-40 gap-2 rounded-md px-2 py-1 text-sm">
+                    <FileText size={32} />
+                    {doc.title}
+                  </div>
+                )}
               </motion.li>
             ))}
           </ul>

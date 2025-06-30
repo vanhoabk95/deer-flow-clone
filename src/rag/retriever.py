@@ -2,16 +2,19 @@
 # SPDX-License-Identifier: MIT
 
 import abc
+from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field
 
 
 class Chunk:
     content: str
     similarity: float
+    metadata: Optional[Dict[str, Any]]
 
-    def __init__(self, content: str, similarity: float):
+    def __init__(self, content: str, similarity: float, metadata: Optional[Dict[str, Any]] = None):
         self.content = content
         self.similarity = similarity
+        self.metadata = metadata or {}
 
 
 class Document:
@@ -23,6 +26,7 @@ class Document:
     url: str | None = None
     title: str | None = None
     chunks: list[Chunk] = []
+    metadata: Optional[Dict[str, Any]] = None
 
     def __init__(
         self,
@@ -30,11 +34,13 @@ class Document:
         url: str | None = None,
         title: str | None = None,
         chunks: list[Chunk] = [],
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         self.id = id
         self.url = url
         self.title = title
         self.chunks = chunks
+        self.metadata = metadata or {}
 
     def to_dict(self) -> dict:
         d = {
@@ -45,6 +51,8 @@ class Document:
             d["url"] = self.url
         if self.title:
             d["title"] = self.title
+        if self.metadata:
+            d["metadata"] = self.metadata
         return d
 
 
