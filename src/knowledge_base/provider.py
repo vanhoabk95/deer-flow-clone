@@ -201,8 +201,9 @@ class LocalKnowledgeBaseProvider(Retriever):
         # Save markdown file
         file_base = os.path.splitext(filename)[0]
         markdown_path = os.path.join(markdown_dir, f"{file_base}.md")
-        with open(markdown_path, 'w', encoding='utf-8') as f:
-            f.write(markdown_content)
+        
+        # Save markdown content to file
+        self._save_markdown_content(markdown_content, markdown_path, filename)
         
         # Create embeddings
         print(f"Initializing embeddings for {filename}...")
@@ -212,7 +213,7 @@ class LocalKnowledgeBaseProvider(Retriever):
         # Chunk document
         print(f"Chunking {filename}...")
         chunks = await self.document_processor.chunk_document(
-            markdown_content, filename, kb_id, embeddings
+            markdown_content, filename, kb_id, embeddings, file_path
         )
         print(f"Successfully chunked {filename} into {len(chunks)} chunks")
         
@@ -220,6 +221,27 @@ class LocalKnowledgeBaseProvider(Retriever):
         print(f"Indexing {filename} into vector database...")
         await self.document_processor.index_to_vectorstore(chunks, lancedb_dir, embeddings)
         print(f"Successfully indexed {filename} into vector database")
+
+    def _save_markdown_content(self, markdown_content, markdown_path: str, filename: str) -> None:
+        """Save markdown content to file with simplified logic."""
+        file_ext = os.path.splitext(filename)[1].lower()
+        
+        if isinstance(markdown_content, list) and file_ext == '.pdf':
+            # PDF page data from pymupdf4llm
+            combined_text = ""
+            for page_info in markdown_content:
+                page_text = page_info.get('text', '')
+                page_num = page_info.get('metadata', {}).get('page', 1)
+                if page_text.strip():
+                    combined_text += f"\n\n--- PAGE {page_num} ---\n\n{page_text}"
+            
+            with open(markdown_path, 'w', encoding='utf-8') as f:
+                f.write(combined_text.strip())
+        else:
+            # Handle string content or fallback
+            content = markdown_content if isinstance(markdown_content, str) else str(markdown_content)
+            with open(markdown_path, 'w', encoding='utf-8') as f:
+                f.write(content)
 
     def delete_document_complete(self, kb_id: str, filename: str) -> bool:
         """Complete document deletion including files, metadata, and vectorstore."""

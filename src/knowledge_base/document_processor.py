@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MIT
 
 import os
-import asyncio
 from typing import List
 
 from langchain_core.documents import Document as LCDocument
@@ -14,13 +13,14 @@ class DocumentProcessor:
     def __init__(self, appdata_path: str):
         self.appdata_path = appdata_path
     
-    async def convert_to_markdown(self, file_path: str, filename: str) -> str:
+    async def convert_to_markdown(self, file_path: str, filename: str) -> str | list:
         """Convert document to markdown based on file type."""
         file_ext = os.path.splitext(filename)[1].lower()
         
         if file_ext == '.pdf':
             import pymupdf4llm
-            return pymupdf4llm.to_markdown(file_path)
+            # Sử dụng page_chunks=True để lấy thông tin page
+            return pymupdf4llm.to_markdown(file_path, page_chunks=True)
         
         elif file_ext in ['.txt', '.md']:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -47,19 +47,92 @@ class DocumentProcessor:
                 f"running and accessible. https://ollama.com/download. Error: {str(e)}"
             )
     
-    async def chunk_document(self, markdown_content: str, filename: str, kb_id: str, 
-                           embeddings) -> List[LCDocument]:
-        """Chunk document using semantic chunker."""
+    async def chunk_document(self, markdown_content: str | list, filename: str, kb_id: str, 
+                           embeddings, file_path: str = None) -> List[LCDocument]:
+        """Chunk document using semantic chunker with basic metadata."""
         from langchain_experimental.text_splitter import SemanticChunker
         
-        # Create initial document
+        file_ext = os.path.splitext(filename)[1].lower()
+        
+        # Handle PDF with page chunks
+        if file_ext == '.pdf' and isinstance(markdown_content, list):
+            return self._chunk_pdf_pages(markdown_content, filename, kb_id, embeddings, file_path)
+        
+        # Handle other document types
+        return self._chunk_text_document(markdown_content, filename, kb_id, embeddings, file_path)
+    
+    def _chunk_pdf_pages(self, page_data: list, filename: str, kb_id: str, 
+                        embeddings, file_path: str) -> List[LCDocument]:
+        """Chunk PDF pages with simplified metadata."""
+        from langchain_experimental.text_splitter import SemanticChunker
+        
+        all_chunks = []
+        
+        for page_info in page_data:
+            page_text = page_info.get('text', '')
+            page_metadata = page_info.get('metadata', {})
+            page_number = page_metadata.get('page', 1)
+            
+            if not page_text.strip():
+                continue
+            
+            # Create basic metadata for page
+            page_doc = LCDocument(
+                page_content=page_text,
+                metadata={
+                    "source": filename,
+                    "knowledge_base": kb_id,
+                    "file_type": ".pdf",
+                    "file_name": filename,
+                    "file_path": file_path or "",
+                    "page_number": page_number,
+                }
+            )
+            
+            # Chunk this page
+            try:
+                semantic_chunker = SemanticChunker(
+                    embeddings,
+                    breakpoint_threshold_type="percentile",
+                    breakpoint_threshold_amount=95,
+                )
+                
+                page_chunks = semantic_chunker.split_documents([page_doc])
+                
+                # Add chunk metadata
+                for chunk_idx, chunk in enumerate(page_chunks):
+                    chunk.metadata.update({
+                        "chunk_index": len(all_chunks),
+                        "page_chunk_index": chunk_idx,
+                    })
+                    all_chunks.append(chunk)
+                        
+            except Exception:
+                # Fallback: treat page as single chunk
+                page_doc.metadata["chunk_index"] = len(all_chunks)
+                all_chunks.append(page_doc)
+        
+        return all_chunks
+    
+    def _chunk_text_document(self, markdown_content: str | list, filename: str, kb_id: str,
+                           embeddings, file_path: str) -> List[LCDocument]:
+        """Chunk non-PDF documents with basic metadata."""
+        from langchain_experimental.text_splitter import SemanticChunker
+        
+        # Convert list to string if needed
+        if isinstance(markdown_content, list):
+            markdown_content = str(markdown_content)
+        
+        file_ext = os.path.splitext(filename)[1].lower()
+        
         initial_doc = LCDocument(
             page_content=markdown_content,
             metadata={
                 "source": filename,
                 "knowledge_base": kb_id,
-                "file_type": os.path.splitext(filename)[1].lower(),
-                "file_name": filename
+                "file_type": file_ext,
+                "file_name": filename,
+                "file_path": file_path or "",
             }
         )
         
@@ -72,23 +145,11 @@ class DocumentProcessor:
             
             chunks = semantic_chunker.split_documents([initial_doc])
             
-            # Enhance chunks with metadata
-            enhanced_chunks = []
+            # Add basic chunk metadata
             for chunk_idx, chunk in enumerate(chunks):
-                enhanced_metadata = {
-                    **chunk.metadata,
-                    "chunk_index": chunk_idx,
-                    "total_chunks": len(chunks),
-                    "chunk_length": len(chunk.page_content),
-                }
-                
-                enhanced_chunk = LCDocument(
-                    page_content=chunk.page_content,
-                    metadata=enhanced_metadata
-                )
-                enhanced_chunks.append(enhanced_chunk)
+                chunk.metadata["chunk_index"] = chunk_idx
             
-            return enhanced_chunks
+            return chunks
             
         except Exception as e:
             raise Exception(
@@ -138,7 +199,7 @@ class DocumentProcessor:
                 return False
             
             table = db.open_table("documents")
-            deleted_count = table.delete(f"source = '{filename}'")
+            deleted_count = table.delete(f"metadata.source = '{filename}'")
             
             print(f"Deleted {deleted_count} vector records for document: {filename}")
             return True

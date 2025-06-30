@@ -1,6 +1,6 @@
-[ ] Cải tiến schema vector database hỗ trợ việc xoá bản ghi khi xoá tài liệu
+[x] Cải tiến schema vector database hỗ trợ việc xoá bản ghi khi xoá tài liệu
+[x] Cải tiến index graph lưu trữ meta data
 [ ] Cải tiến index graph xử lý các loại tài liệu khác
-[ ] Cải tiến index graph lưu trữ meta data
 [ ] Cải tiến retrieval graph áp dụng hybrid search
 [ ] Cải tiến retrieval graph sử dụng prompt tốt hơn
 [ ] Cải tiến model embed tốt hơn
