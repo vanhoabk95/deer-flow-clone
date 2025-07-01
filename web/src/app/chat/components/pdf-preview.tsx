@@ -27,25 +27,25 @@ export function PDFPreview({ fileName, knowledgeBase, pages, className, height =
   }
 
   return (
-    <Card className={`w-full ${className || ''}`} style={{ boxShadow: 'none', border: 'none', background: 'transparent' }}>
+    <Card className={`w-full max-w-full ${className || ''}`} style={{ boxShadow: 'none', border: 'none', background: 'transparent' }}>
       <div className="flex items-center gap-2 mb-2">
         <FileText size={18} className="text-red-500" />
         <span className="font-medium text-base truncate">{fileName}</span>
         <Button
           variant="outline"
           size="sm"
-          className="ml-auto"
+          className="ml-auto flex-shrink-0"
           onClick={handleOpenPDF}
         >
           <ExternalLink size={14} className="mr-1" />
-          Mở PDF
+          Open Full PDF
         </Button>
       </div>
       {/* Render từng trang PDF liên quan */}
       {pages.map((page) => (
-        <div key={page} className="mb-6 w-full">
-          <div className="text-xs text-muted-foreground mb-1">Trang {page}</div>
-          <div className="w-full" style={{ minHeight: Math.min(height, 320), height: height }}>
+        <div key={page} className="mb-6 w-full max-w-full">
+          <div className="text-xs text-muted-foreground mb-1">Page {page}</div>
+          <div className="w-full max-w-full min-w-[300px] aspect-[4/5] min-h-[200px] max-h-[600px]">
             <iframe
               src={`${pdfUrl}#page=${page}&toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
               className="w-full h-full border-0 rounded"

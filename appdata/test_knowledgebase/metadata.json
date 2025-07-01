@@ -1,0 +1,24 @@
+{
+  "id": "test_knowledgebase",
+  "name": "test knowledgebase",
+  "description": "this is test",
+  "created_at": "2025-07-01T08:06:13.524369",
+  "updated_at": "2025-07-01T08:15:39.126144",
+  "document_count": 1,
+  "documents": [
+    {
+      "id": "doc_1c6d7e92",
+      "knowledge_base_id": "test_knowledgebase",
+      "name": "ca-310_instruction_eng",
+      "file_name": "ca-310_instruction_eng.pdf",
+      "file_type": "application/pdf",
+      "file_size": 3115045,
+      "status": "ready",
+      "error_message": "",
+      "created_at": "2025-07-01T08:06:22.513960",
+      "updated_at": "2025-07-01T08:15:30.691895",
+      "processing_started_at": "2025-07-01T08:06:22.524917",
+      "processing_completed_at": "2025-07-01T08:15:30.691895"
+    }
+  ]
+}

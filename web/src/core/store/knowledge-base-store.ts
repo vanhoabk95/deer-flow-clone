@@ -117,6 +117,13 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
 
   uploadDocument: async (knowledgeBaseId: string, file: File) => {
     try {
+      // Validate file size (5MB limit)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        toast.error(`Document '${file.name}' is too large. Maximum allowed size is 5MB.`);
+        return;
+      }
+
       const document = await uploadDocument({ knowledge_base_id: knowledgeBaseId, file });
 
       // Update documents list with the returned document
@@ -125,7 +132,7 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
         documents: new Map(state.documents).set(knowledgeBaseId, [...currentDocuments, document])
       }));
 
-      toast.success(`Đã upload thành công tài liệu '${file.name}'`);
+      toast.success(`Successfully uploaded document '${file.name}'`);
 
       // Start polling for processing status immediately
       get().pollDocumentStatus(knowledgeBaseId, document.id);
@@ -136,13 +143,13 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
       if (error.message && error.message.includes("409:")) {
         // Extract detailed message from server response
         const serverMessage = error.message.split("409:")[1]?.trim();
-        if (serverMessage && serverMessage.includes("Tài liệu")) {
+        if (serverMessage && serverMessage.includes("Document")) {
           toast.error(serverMessage);
         } else {
-          toast.error(`Tài liệu '${file.name}' đã tồn tại trong knowledge base này. Vui lòng đổi tên file hoặc xóa tài liệu cũ.`);
+          toast.error(`Document '${file.name}' already exists in this knowledge base. Please rename the file or delete the old document.`);
         }
       } else {
-        toast.error(`Không thể upload tài liệu '${file.name}'. Vui lòng thử lại.`);
+        toast.error(`Unable to upload document '${file.name}'. Please try again.`);
       }
     }
   },
@@ -157,10 +164,10 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
           currentDocuments.filter(doc => doc.id !== documentId)
         )
       }));
-      toast.success("Tài liệu đã được xóa thành công");
+      toast.success("Document deleted successfully");
     } catch (error) {
       console.error("Failed to delete document:", error);
-      toast.error("Không thể xóa tài liệu. Vui lòng thử lại.");
+      toast.error("Unable to delete document. Please try again.");
     }
   },
 
@@ -194,10 +201,10 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
 
         // Check final status
         if (document.status === 'ready') {
-          toast.success(`Tài liệu '${document.name}' đã được xử lý và lập chỉ mục thành công`);
+          toast.success(`Document '${document.name}' has been processed and indexed successfully`);
           return;
         } else if (document.status === 'error') {
-          toast.error(`Lỗi khi xử lý tài liệu '${document.name}': ${document.error_message}`);
+          toast.error(`Error processing document '${document.name}': ${document.error_message}`);
           return;
         }
 
@@ -206,7 +213,7 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
           pollCount++;
           setTimeout(poll, pollInterval);
         } else if (pollCount >= maxPolls) {
-          toast.warning(`Tài liệu '${document.name}' đang mất nhiều thời gian xử lý hơn dự kiến. Vui lòng kiểm tra lại sau.`);
+          toast.warning(`Document '${document.name}' is taking longer than expected to process. Please check again later.`);
         }
       } catch (error) {
         console.error("Failed to poll document status:", error);

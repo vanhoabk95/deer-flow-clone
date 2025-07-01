@@ -365,7 +365,6 @@ function RetrieverToolCall({ toolCall }: { toolCall: ToolCallRuntime }) {
                     fileName={doc.metadata.file_name || doc.title}
                     knowledgeBase={doc.metadata.knowledge_base || ""}
                     pages={doc.metadata.pdf_pages}
-                    height={500}
                   />
                 ) : (
                   <div className="text-muted-foreground bg-accent flex max-w-40 gap-2 rounded-md px-2 py-1 text-sm">
