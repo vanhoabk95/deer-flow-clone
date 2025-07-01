@@ -1,5 +1,6 @@
 [x] Cải tiến schema vector database hỗ trợ việc xoá bản ghi khi xoá tài liệu
 [x] Cải tiến index graph lưu trữ meta data
+[ ] Thêm tính năng lựa chọn thư mục app data
 [ ] Chuyển đổi graph phức tạp thành graph đơn giản hơn
 [ ] Cải tiến thuật toán chunking từ semantic sang recursive
 [ ] Thuật toán retrieval từ chỉ vector sang hybrid

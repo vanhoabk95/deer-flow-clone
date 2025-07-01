@@ -5,7 +5,10 @@ import os
 from typing import List
 
 from langchain_core.documents import Document as LCDocument
-
+from langchain_community.vectorstores import LanceDB
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+import lancedb
 
 class DocumentProcessor:
     """Handles document processing: conversion to markdown and vectorization."""
@@ -50,7 +53,6 @@ class DocumentProcessor:
     async def chunk_document(self, markdown_content: str | list, filename: str, kb_id: str, 
                            embeddings, file_path: str = None) -> List[LCDocument]:
         """Chunk document using semantic chunker with basic metadata."""
-        from langchain_experimental.text_splitter import SemanticChunker
         
         file_ext = os.path.splitext(filename)[1].lower()
         
@@ -64,7 +66,6 @@ class DocumentProcessor:
     def _chunk_pdf_pages(self, page_data: list, filename: str, kb_id: str, 
                         embeddings, file_path: str) -> List[LCDocument]:
         """Chunk PDF pages with simplified metadata."""
-        from langchain_experimental.text_splitter import SemanticChunker
         
         all_chunks = []
         
@@ -117,7 +118,6 @@ class DocumentProcessor:
     def _chunk_text_document(self, markdown_content: str | list, filename: str, kb_id: str,
                            embeddings, file_path: str) -> List[LCDocument]:
         """Chunk non-PDF documents with basic metadata."""
-        from langchain_experimental.text_splitter import SemanticChunker
         
         # Convert list to string if needed
         if isinstance(markdown_content, list):
@@ -153,16 +153,12 @@ class DocumentProcessor:
             
         except Exception as e:
             raise Exception(
-                f"Failed to chunk document using semantic chunker. "
-                f"This usually indicates an Ollama connection issue. Error: {str(e)}"
+                f"Failed to chunk document using semantic chunker. Error: {str(e)}"
             )
     
     async def index_to_vectorstore(self, chunks: List[LCDocument], lancedb_dir: str, 
                                  embeddings) -> None:
-        """Index chunks into LanceDB vector store."""
-        import lancedb
-        from langchain_community.vectorstores import LanceDB
-        
+        """Index chunks into LanceDB vector store.""" 
         try:
             vectorstore = LanceDB(
                 uri=lancedb_dir,
@@ -175,9 +171,7 @@ class DocumentProcessor:
             
         except Exception as e:
             raise Exception(
-                f"Failed to index document into vector database. "
-                f"This may be due to Ollama connection issues during embedding generation. "
-                f"Error: {str(e)}"
+                f"Failed to index document into vector database. Error: {str(e)}"
             )
     
     def delete_from_vectorstore(self, kb_id: str, filename: str) -> bool:
@@ -190,8 +184,6 @@ class DocumentProcessor:
             return False
         
         try:
-            import lancedb
-            
             db = lancedb.connect(lancedb_path)
             
             if "documents" not in db.table_names():
