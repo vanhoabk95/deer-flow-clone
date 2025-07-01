@@ -117,10 +117,10 @@ export const useKnowledgeBaseStore = create<KnowledgeBaseStore>((set, get) => ({
 
   uploadDocument: async (knowledgeBaseId: string, file: File) => {
     try {
-      // Validate file size (5MB limit)
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      // Validate file size (6MB limit)
+      const maxSize = 6 * 1024 * 1024; // 6MB in bytes
       if (file.size > maxSize) {
-        toast.error(`Document '${file.name}' is too large. Maximum allowed size is 5MB.`);
+        toast.error(`Document '${file.name}' is too large. Maximum allowed size is 6MB.`);
         return;
       }
 

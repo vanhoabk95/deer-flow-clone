@@ -16,7 +16,7 @@ import { Toaster } from "../components/deer-flow/toaster";
 export const metadata: Metadata = {
   title: "Development Agent",
   description:
-    "Deep Exploration and Efficient Research, an AI tool that combines language models with specialized tools for research tasks.",
+    "AI Assistant that help development engineers with research tasks.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

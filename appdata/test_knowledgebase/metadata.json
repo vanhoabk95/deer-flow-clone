@@ -1,9 +1,9 @@
 {
   "id": "test_knowledgebase",
-  "name": "test knowledgebase",
-  "description": "this is test",
+  "name": "Compensation Equipments",
+  "description": "Compensation equipments documents",
   "created_at": "2025-07-01T08:06:13.524369",
-  "updated_at": "2025-07-01T08:39:37.083721",
+  "updated_at": "2025-07-01T16:01:30.892864",
   "document_count": 1,
   "documents": [
     {

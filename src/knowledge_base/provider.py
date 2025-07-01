@@ -26,7 +26,7 @@ class LocalKnowledgeBaseProvider(Retriever):
         if not os.path.exists(self.appdata_path):
             os.makedirs(self.appdata_path)
         
-        self.max_results = int(os.getenv("LOCAL_KB_MAX_RESULTS", "10"))
+        self.max_results = int(os.getenv("LOCAL_KB_MAX_RESULTS", "5"))
         
         # Initialize managers
         self.metadata_manager = MetadataManager(self.appdata_path)
@@ -294,4 +294,30 @@ class LocalKnowledgeBaseProvider(Retriever):
 
     def get_document_status(self, kb_id: str, filename: str) -> Optional[Dict[str, Any]]:
         """Get status of a specific document."""
-        return self.metadata_manager.get_document_status(kb_id, filename) 
+        return self.metadata_manager.get_document_status(kb_id, filename)
+
+    def update_knowledge_base(self, kb_id: str, name: str, description: str = "") -> bool:
+        """Update knowledge base name and description."""
+        try:
+            kb_path = os.path.join(self.appdata_path, kb_id)
+            
+            if not os.path.exists(kb_path):
+                print(f"Knowledge base not found: {kb_id}")
+                return False
+            
+            # Get current metadata
+            metadata = self.metadata_manager.get_kb_metadata(kb_path)
+            
+            # Update fields
+            metadata["name"] = name
+            metadata["description"] = description
+            metadata["updated_at"] = datetime.now().isoformat()
+            
+            # Save updated metadata
+            self.metadata_manager.save_kb_metadata(kb_path, metadata)
+            print(f"Successfully updated knowledge base: {kb_id}")
+            return True
+            
+        except Exception as e:
+            print(f"Error updating knowledge base {kb_id}: {e}")
+            return False 

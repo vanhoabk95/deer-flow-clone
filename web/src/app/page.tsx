@@ -36,10 +36,9 @@ function Footer() {
           &quot;I choose a lazy person to do a hard job. Because a lazy person will find an easy way to do it.&quot;
         </p>
       </div>
-      {/* <div className="text-muted-foreground container mb-8 flex flex-col items-center justify-center text-xs">
-        <p>Licensed under MIT License</p>
-        <p>&copy; {year} DeerFlow</p>
-      </div> */}
+      <div className="text-muted-foreground container mb-8 flex flex-col items-center justify-center text-xs">
+        <p>&copy; {year} PO Auto Development Team - phungvanhoa@lgdisplay.com</p>
+      </div>
     </footer>
   );
 }

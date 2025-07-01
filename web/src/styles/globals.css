@@ -9,6 +9,14 @@
     var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
+  /* Custom aspect ratios for PDF preview */
+  --aspect-ratio-a4: 1 / 1.41;
+  --aspect-ratio-4-3: 4 / 3;
+  --aspect-ratio-16-9: 16 / 9;
+  --aspect-ratio-3-4: 3 / 4;
+  --aspect-ratio-1-1: 1 / 1;
+  --aspect-ratio-3-2: 3 / 2;
+
   --animate-fade-in: fade-in 1s;
   @keyframes fade-in {
     0% {

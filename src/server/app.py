@@ -269,9 +269,19 @@ async def create_knowledge_base(request: CreateKnowledgeBaseRequest):
 @app.put("/api/knowledge-bases/{kb_id}")
 async def update_knowledge_base(kb_id: str, request: CreateKnowledgeBaseRequest):
     """Update a knowledge base."""
-    # For now, just return not implemented
-    # TODO: Implement update functionality in LocalKnowledgeBaseProvider
-    raise HTTPException(status_code=501, detail="Update knowledge base not implemented yet")
+    try:
+        success = kb_provider.update_knowledge_base(kb_id, request.name, request.description)
+        if success:
+            # Get the updated KB metadata
+            kbs = kb_provider.get_knowledge_bases()
+            for kb in kbs:
+                if kb["id"] == kb_id:
+                    return KnowledgeBase(**kb)
+            raise HTTPException(status_code=404, detail="Knowledge base not found after update")
+        else:
+            raise HTTPException(status_code=404, detail="Knowledge base not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating knowledge base: {str(e)}")
 
 @app.delete("/api/knowledge-bases/{kb_id}")
 async def delete_knowledge_base(kb_id: str):
@@ -327,6 +337,13 @@ async def upload_document(
         kbs = kb_provider.get_knowledge_bases()
         if not any(kb["id"] == kb_id for kb in kbs):
             raise HTTPException(status_code=404, detail="Knowledge base not found")
+        
+        # Kiểm tra kích thước file (giới hạn 6MB)
+        file.file.seek(0, 2)  # Move to end of file
+        file_size = file.file.tell()
+        file.file.seek(0)  # Reset to start
+        if file_size > 6 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Document too large. Maximum allowed size is 6MB.")
         
         # Save uploaded file
         kb_path = os.path.join(kb_provider.appdata_path, kb_id)
