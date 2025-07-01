@@ -1,13 +1,10 @@
-# [!NOTE]
-# Read the `docs/configuration_guide.md` carefully, and update the
-# configurations to match your specific settings and requirements.
-# - Replace `api_key` with your own credentials.
-# - Replace `base_url` and `model` name if you want to use a custom model.
-# - A restart is required every time you change the `config.yaml` file.
 
 BASIC_MODEL:
-  base_url: https://ark.cn-beijing.volces.com/api/v3
-  model: "doubao-1-5-pro-32k-250115"
-  api_key: xxxx
+  base_url: "https://generativelanguage.googleapis.com/v1beta/openai/"
+  model: "gemini-2.0-flash"
+  api_key: api_key
 
-
+BASIC_MODEL:
+  base_url: "http://localhost:11434/chat/v1"
+  model: "gemma3:1b"
+  api_key: api_key

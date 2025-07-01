@@ -47,9 +47,7 @@ You are gathering information for a **{{ report_style }}** report. Adjust your r
 You have access to tools:
 
 **Built-in Tools**: These are always available:
-   {% if resources %}
    - **local_search_tool**: For retrieving information from the local knowledge base when user mentioned in the messages.
-   {% endif %}
    - **web_search_tool**: For performing web searches
    - **crawl_tool**: For reading content from URLs
 

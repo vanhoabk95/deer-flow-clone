@@ -8,12 +8,15 @@ import traceback
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
+from dotenv import load_dotenv
+
 from src.rag.retriever import Retriever, Resource, Document
 from .metadata import MetadataManager
 from .document_processor import DocumentProcessor
 from .vector_search import VectorSearchManager
 from .utils import parse_kb_uri, setup_kb_directories
 
+load_dotenv()
 
 class LocalKnowledgeBaseProvider(Retriever):
     """
@@ -27,6 +30,7 @@ class LocalKnowledgeBaseProvider(Retriever):
             os.makedirs(self.appdata_path)
         
         self.max_results = int(os.getenv("LOCAL_KB_MAX_RESULTS", "5"))
+        self.default_use_hybrid = os.getenv("USE_HYBRID_SEARCH", "false").lower() == "true"
         
         # Initialize managers
         self.metadata_manager = MetadataManager(self.appdata_path)
@@ -65,16 +69,27 @@ class LocalKnowledgeBaseProvider(Retriever):
         
         return resources
 
-    def query_relevant_documents(self, query: str, resources: List[Resource] = []) -> List[Document]:
-        """Query relevant documents from specified knowledge bases."""
+    def query_relevant_documents(self, query: str, resources: List[Resource] = [], use_hybrid: bool = None) -> List[Document]:
+        """Query relevant documents from specified knowledge bases.
+        
+        Args:
+            query: Search query string
+            resources: List of knowledge base resources to search in
+            use_hybrid: Whether to use hybrid search (vector + full-text search). 
+                       If None, uses default setting from environment variable.
+        """
         if not resources:
             return []
+        
+        # Use default setting if not specified
+        if use_hybrid is None:
+            use_hybrid = self.default_use_hybrid
         
         all_documents = []
         for resource in resources:
             kb_id = parse_kb_uri(resource.uri)
             if kb_id:
-                docs = self.vector_search_manager.search_in_kb(kb_id, query)
+                docs = self.vector_search_manager.search_in_kb(kb_id, query, use_hybrid=use_hybrid)
                 all_documents.extend(docs)
         
         # Sort by similarity and return top results

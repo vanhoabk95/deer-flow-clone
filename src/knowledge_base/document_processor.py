@@ -4,11 +4,15 @@
 import os
 from typing import List
 
+from dotenv import load_dotenv
+
 from langchain_core.documents import Document as LCDocument
 from langchain_community.vectorstores import LanceDB
-from langchain_experimental.text_splitter import SemanticChunker
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import lancedb
+from langchain_ollama import OllamaEmbeddings
+
+load_dotenv()
 
 class DocumentProcessor:
     """Handles document processing: conversion to markdown and vectorization."""
@@ -37,7 +41,6 @@ class DocumentProcessor:
     
     async def create_embeddings(self, embedding_model: str):
         """Create and test embeddings connection."""
-        from langchain_ollama import OllamaEmbeddings
         
         try:
             embeddings = OllamaEmbeddings(model=embedding_model)
@@ -52,22 +55,32 @@ class DocumentProcessor:
     
     async def chunk_document(self, markdown_content: str | list, filename: str, kb_id: str, 
                            embeddings, file_path: str = None) -> List[LCDocument]:
-        """Chunk document using semantic chunker with basic metadata."""
+        """Chunk document using RecursiveCharacterTextSplitter with basic metadata."""
         
         file_ext = os.path.splitext(filename)[1].lower()
         
         # Handle PDF with page chunks
         if file_ext == '.pdf' and isinstance(markdown_content, list):
-            return self._chunk_pdf_pages(markdown_content, filename, kb_id, embeddings, file_path)
+            return self._chunk_pdf_pages(markdown_content, filename, kb_id, file_path)
         
         # Handle other document types
-        return self._chunk_text_document(markdown_content, filename, kb_id, embeddings, file_path)
+        return self._chunk_text_document(markdown_content, filename, kb_id, file_path)
     
     def _chunk_pdf_pages(self, page_data: list, filename: str, kb_id: str, 
-                        embeddings, file_path: str) -> List[LCDocument]:
+                        file_path: str) -> List[LCDocument]:
         """Chunk PDF pages with simplified metadata."""
         
         all_chunks = []
+        
+        # Tạo text splitter - đọc cấu hình từ environment variables
+        chunk_size = int(os.getenv("CHUNK_SIZE", "2500"))
+        chunk_overlap = int(os.getenv("CHUNK_OVERLAP", "500"))
+        
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            length_function=len,
+        )
         
         for page_info in page_data:
             page_text = page_info.get('text', '')
@@ -92,13 +105,7 @@ class DocumentProcessor:
             
             # Chunk this page
             try:
-                semantic_chunker = SemanticChunker(
-                    embeddings,
-                    breakpoint_threshold_type="percentile",
-                    breakpoint_threshold_amount=95,
-                )
-                
-                page_chunks = semantic_chunker.split_documents([page_doc])
+                page_chunks = text_splitter.split_documents([page_doc])
                 
                 # Add chunk metadata
                 for chunk_idx, chunk in enumerate(page_chunks):
@@ -116,7 +123,7 @@ class DocumentProcessor:
         return all_chunks
     
     def _chunk_text_document(self, markdown_content: str | list, filename: str, kb_id: str,
-                           embeddings, file_path: str) -> List[LCDocument]:
+                           file_path: str) -> List[LCDocument]:
         """Chunk non-PDF documents with basic metadata."""
         
         # Convert list to string if needed
@@ -137,13 +144,17 @@ class DocumentProcessor:
         )
         
         try:
-            semantic_chunker = SemanticChunker(
-                embeddings,
-                breakpoint_threshold_type="percentile",
-                breakpoint_threshold_amount=95,
+            # Tạo text splitter - đọc cấu hình từ environment variables
+            chunk_size = int(os.getenv("CHUNK_SIZE", "2500"))
+            chunk_overlap = int(os.getenv("CHUNK_OVERLAP", "500"))
+            
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                length_function=len,
             )
             
-            chunks = semantic_chunker.split_documents([initial_doc])
+            chunks = text_splitter.split_documents([initial_doc])
             
             # Add basic chunk metadata
             for chunk_idx, chunk in enumerate(chunks):
@@ -153,7 +164,7 @@ class DocumentProcessor:
             
         except Exception as e:
             raise Exception(
-                f"Failed to chunk document using semantic chunker. Error: {str(e)}"
+                f"Failed to chunk document using RecursiveCharacterTextSplitter. Error: {str(e)}"
             )
     
     async def index_to_vectorstore(self, chunks: List[LCDocument], lancedb_dir: str, 

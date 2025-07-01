@@ -579,10 +579,10 @@ The setting method varies with measurement method.
 
 
 
-
 |Selectin<br>Select c<br>Select 6|g the Calibration Standard<br>alibration data.<br>500K and 9300K.|
 |---|---|
 ||P. 50|
+
 
 
 
@@ -705,6 +705,7 @@ indications
 2 Digital display
 
 **<Rear>**
+
 
 
 
@@ -968,7 +969,6 @@ ISO screw hole Tripod screw hole ISO screw hole
 |||||
 |||||
 |||||
-
 
 
 **Settin** **the Measurin** **Distance**
@@ -1327,16 +1327,6 @@ R, B and G are displayed. R-reference and G-reference are available.
 
 R-reference or G-reference.)
 
-
-
-
-
-
-
-
-
-
-
 - When u'v'Lv measurement mode is selected
 
 u', v' and Lv are displayed.
@@ -1350,6 +1340,14 @@ Flicker** is displayed. The display range is from 0.0 to 999.9%.
 X, Y and Z are displayed. (X, Y and Z from top to bottom)
 
 **19**
+
+
+
+
+
+
+
+
 
 
 
@@ -2419,9 +2417,9 @@ ON( | ).
 
 The selected measurement speed will be effective when the POWER switch is set to ON( | ).
 
-
 **Flicker Mode is a function which can be used only when LED Flicker Measuring ø27 Probe(CA-P32/35) or LED Flicker Measuring ø10
 Probe(CA-PS32/35) is connected.
+
 
 37
 
@@ -2667,10 +2665,10 @@ The following measurement modes are available.
 **Press the** ~~**MODE**~~ **key to display the measurement mode you want to select.**
 
 
-
 Each time the ~~MODE~~ key is pressed, measurement mode will switch as shown below.
 
 xyLv mode
+
 
 
 
@@ -2795,6 +2793,7 @@ Follow the procedure given below to select the probe connector No. (P1 to P5) to
 
 probe is connected.
 
+
 In this example, a measuring probe is connected to the probe connectors [P1], [P3] and [P5].
 
 [P1]
@@ -2916,6 +2915,7 @@ measurement mode.
 The setting method varies with measurement mode.
 
 **From the Measurement Preparation Section**
+
 
 
 
@@ -3132,8 +3132,6 @@ performed, the RGB emission characteristic for analyzer mode is also input at th
 
 
 ID name
-
-
 
 
 
@@ -4172,6 +4170,7 @@ light R
 G/R, B/R : Ratio of measured values
 
 
+
 Measurement mode
 
 R
@@ -4451,9 +4450,6 @@ stored in their common memory irrespective of measurement mode. Therefore, when 
 performed, the RGB emission characteristic for analyzer mode is also input at the same time.
 
 **User Calibration  How the memory is used in the case of analyzer mode**
-
-
-
 
 
 61
@@ -5728,7 +5724,6 @@ G/R, B/R: Ratio of measured values
 - For details on the analog display function and how to set the range for each dot, refer to page 67.
 
 - When the analog display range is set to n%
-
 
 
 
@@ -7050,10 +7045,11 @@ With the JEITA method, the measuring devices shown below are required for measur
 
 
 
-
 ~~FFTFFT~~ ~~analyzeranalyzer~~ ~~IntegratorIntegrator~~
 
+
 **Fig. 3**
+
 
 Fig. 3 shows that the output signal (Fig. 1) from the luminance meter (used to measure the LCD) is guided to the
 
@@ -7856,6 +7852,8 @@ selected probe cannot be changed to LED Universal Measuring ø27 Probe(CA-PU32/3
 --- PAGE 118 ---
 
 From the Measurement Preparation section
+
+
 
 
 
