@@ -60,6 +60,7 @@ async def chat_stream(request: ChatRequest):
             request.model_dump()["messages"],
             thread_id,
             request.resources,
+            request.knowledge_base or [],
             request.max_plan_iterations,
             request.max_step_num,
             request.max_search_results,
@@ -75,6 +76,7 @@ async def _astream_workflow_generator(
     messages: List[dict],
     thread_id: str,
     resources: List[Resource],
+    knowledge_base: List[str],
     max_plan_iterations: int,
     max_step_num: int,
     max_search_results: int,
@@ -90,6 +92,7 @@ async def _astream_workflow_generator(
         "observations": [],
         "auto_accepted_plan": auto_accepted_plan,
         "research_topic": messages[-1]["content"] if messages else "",
+        "knowledge_base": knowledge_base,
     }
     if not auto_accepted_plan and interrupt_feedback:
         resume_msg = f"[{interrupt_feedback}]"

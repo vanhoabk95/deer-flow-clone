@@ -34,6 +34,9 @@ class ChatRequest(BaseModel):
     resources: Optional[List[Resource]] = Field(
         [], description="Resources to be used for the research"
     )
+    knowledge_base: Optional[List[str]] = Field(
+        [], description="List of knowledge base IDs mentioned in the message"
+    )
     debug: Optional[bool] = Field(False, description="Whether to enable debug logging")
     thread_id: Optional[str] = Field(
         "__default__", description="A specific conversation identifier"

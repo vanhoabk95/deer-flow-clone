@@ -18,7 +18,7 @@ class Configuration:
     resources: list[Resource] = field(
         default_factory=list
     )  # Resources to be used for the research
-    max_plan_iterations: int = 1  # Maximum number of plan iterations
+    max_plan_iterations: int = 20  # Maximum number of plan iterations
     max_step_num: int = 3  # Maximum number of steps in a plan
     max_search_results: int = 3  # Maximum number of search results
     report_style: str = ReportStyle.ISSUE_HISTORY.value  # Report style

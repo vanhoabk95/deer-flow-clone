@@ -12,7 +12,7 @@ from .nodes import (
     reporter_node,
     research_team_node,
     researcher_node,
-    coder_node,
+    #coder_node,
     human_feedback_node,
 )
 
@@ -28,8 +28,8 @@ def continue_to_running_research_team(state: State):
             break
     if step.step_type and step.step_type == StepType.RESEARCH:
         return "researcher"
-    if step.step_type and step.step_type == StepType.PROCESSING:
-        return "coder"
+    # if step.step_type and step.step_type == StepType.PROCESSING:
+    #     return "coder"
     return "planner"
 
 
@@ -43,13 +43,13 @@ def _build_base_graph():
     builder.add_node("reporter", reporter_node)
     builder.add_node("research_team", research_team_node)
     builder.add_node("researcher", researcher_node)
-    builder.add_node("coder", coder_node)
+    # builder.add_node("coder", coder_node)
     builder.add_node("human_feedback", human_feedback_node)
 
     builder.add_conditional_edges(
         "research_team",
         continue_to_running_research_team,
-        ["planner", "researcher", "coder"],
+        ["planner", "researcher"],
     )
     builder.add_edge("reporter", END)
     return builder

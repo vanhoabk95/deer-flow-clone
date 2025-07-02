@@ -10,7 +10,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from langgraph.types import Command, interrupt
-
+from openevals.llm import create_async_llm_as_judge
+from openevals.prompts import RAG_RETRIEVAL_RELEVANCE_PROMPT
 
 from src.agents import create_agent
 from src.tools.search import LoggedTavilySearch
@@ -34,15 +35,15 @@ from ..config import SELECTED_SEARCH_ENGINE, SearchEngine
 logger = logging.getLogger(__name__)
 
 
-@tool
-def handoff_to_planner(
-    research_topic: Annotated[str, "The topic of the research task to be handed off."],
-    locale: Annotated[str, "The user's detected language locale (e.g., en-US, zh-CN)."],
-):
-    """Handoff to planner agent to do plan."""
-    # This tool is not returning anything: we're just using it
-    # as a way for LLM to signal that it needs to hand off to planner agent
-    return
+# @tool
+# def handoff_to_planner(
+#     research_topic: Annotated[str, "The topic of the research task to be handed off."],
+#     locale: Annotated[str, "The user's detected language locale (e.g., en-US, zh-CN)."],
+# ):
+#     """Handoff to planner agent to do plan."""
+#     # This tool is not returning anything: we're just using it
+#     # as a way for LLM to signal that it needs to hand off to planner agent
+#     return
 
 
 
@@ -50,10 +51,12 @@ def handoff_to_planner(
 
 def planner_node(
     state: State, config: RunnableConfig
-) -> Command[Literal["human_feedback", "reporter"]]:
-    """Planner node that generate the full plan."""
-    logger.info("Planner generating full plan")
+#) -> Command[Literal["human_feedback", "reporter", "research_team"]]:
+) -> Command[Literal["research_team"]]:
+    """Planner node that generate the queries."""
+    logger.info("Planner generating queries")
     configurable = Configuration.from_runnable_config(config)
+    # plan iterations temporary stand for number of queries
     plan_iterations = state["plan_iterations"] if state.get("plan_iterations", 0) else 0
     messages = apply_prompt_template("planner", state, configurable)
 
@@ -65,7 +68,7 @@ def planner_node(
     else:
         llm = get_llm_by_type(AGENT_LLM_MAP["planner"])
 
-    # if the plan iterations is greater than the max plan iterations, return the reporter node
+    #if the plan iterations is greater than the max plan iterations, return the reporter node
     if plan_iterations >= configurable.max_plan_iterations:
         return Command(goto="reporter")
 
@@ -158,53 +161,75 @@ def human_feedback_node(
         goto=goto,
     )
 
-
+# todo: This node is a simple node that response to the user or route to the planner node
 def coordinator_node(
     state: State, config: RunnableConfig
 ) -> Command[Literal["planner", "__end__"]]:
     """Coordinator node that communicate with customers."""
     logger.info("Coordinator talking.")
     configurable = Configuration.from_runnable_config(config)
-    messages = apply_prompt_template("coordinator", state)
-    response = (
-        get_llm_by_type(AGENT_LLM_MAP["coordinator"])
-        .bind_tools([handoff_to_planner])
-        .invoke(messages)
-    )
-    logger.debug(f"Current state messages: {state['messages']}")
+    logger.debug(f"State: {state}")
 
-    goto = "__end__"
-    locale = state.get("locale", "en-US")  # Default locale if not specified
-    research_topic = state.get("research_topic", "")
-
-    if len(response.tool_calls) > 0:
-        goto = "planner"
-        try:
-            for tool_call in response.tool_calls:
-                if tool_call.get("name", "") != "handoff_to_planner":
-                    continue
-                if tool_call.get("args", {}).get("locale") and tool_call.get(
-                    "args", {}
-                ).get("research_topic"):
-                    locale = tool_call.get("args", {}).get("locale")
-                    research_topic = tool_call.get("args", {}).get("research_topic")
-                    break
-        except Exception as e:
-            logger.error(f"Error processing tool calls: {e}")
-    else:
-        logger.warning(
-            "Coordinator response contains no tool calls. Terminating workflow execution."
+    if state.get("knowledge_base"):
+        logger.info(f"Knowledge base: {state.get('knowledge_base')}")
+        logger.info(f"User mention knowledge base, route to planner node")
+        return Command(
+            update={
+                "knowledge_base": state.get("knowledge_base"),
+                "locale": "en-US",
+            },
+            goto="planner"
         )
-        logger.debug(f"Coordinator response: {response}")
+    else:
+        logger.info("User not mention knowledge base, general response")
+        messages = apply_prompt_template("coordinator", state)
+        response = (
+            get_llm_by_type(AGENT_LLM_MAP["coordinator"])
+            .invoke(messages)
+        )
+        logger.debug(f"Current state messages: {state['messages']}")
+        return Command(goto="__end__")
 
-    return Command(
-        update={
-            "locale": locale,
-            "research_topic": research_topic,
-            "resources": configurable.resources,
-        },
-        goto=goto,
-    )
+    # messages = apply_prompt_template("coordinator", state)
+    # response = (
+    #     get_llm_by_type(AGENT_LLM_MAP["coordinator"])
+    #     # .bind_tools([handoff_to_planner])
+    #     .invoke(messages)
+    # )
+    # logger.debug(f"Current state messages: {state['messages']}")
+
+    # goto = "__end__"
+    # locale = state.get("locale", "en-US")  # Default locale if not specified
+    # research_topic = state.get("research_topic", "")
+
+    # if len(response.tool_calls) > 0:
+    #     goto = "planner"
+    #     try:
+    #         for tool_call in response.tool_calls:
+    #             if tool_call.get("name", "") != "handoff_to_planner":
+    #                 continue
+    #             if tool_call.get("args", {}).get("locale") and tool_call.get(
+    #                 "args", {}
+    #             ).get("research_topic"):
+    #                 locale = tool_call.get("args", {}).get("locale")
+    #                 research_topic = tool_call.get("args", {}).get("research_topic")
+    #                 break
+    #     except Exception as e:
+    #         logger.error(f"Error processing tool calls: {e}")
+    # else:
+    #     logger.warning(
+    #         "Coordinator response contains no tool calls. Terminating workflow execution."
+    #     )
+    #     logger.debug(f"Coordinator response: {response}")
+
+    # return Command(
+    #     update={
+    #         "locale": locale,
+    #         "research_topic": research_topic,
+    #         "resources": configurable.resources,
+    #     },
+    #     goto=goto,
+    # )
 
 
 def reporter_node(state: State, config: RunnableConfig):
@@ -408,17 +433,17 @@ async def researcher_node(
     )
 
 
-async def coder_node(
-    state: State, config: RunnableConfig
-) -> Command[Literal["research_team"]]:
-    """Coder node that do code analysis."""
-    logger.info("Coder node is coding.")
-    return await _setup_and_execute_agent_step(
-        state,
-        config,
-        "coder",
-        [python_repl_tool],
-    )
+# async def coder_node(
+#     state: State, config: RunnableConfig
+# ) -> Command[Literal["research_team"]]:
+#     """Coder node that do code analysis."""
+#     logger.info("Coder node is coding.")
+#     return await _setup_and_execute_agent_step(
+#         state,
+#         config,
+#         "coder",
+#         [python_repl_tool],
+#     )
 
 
 

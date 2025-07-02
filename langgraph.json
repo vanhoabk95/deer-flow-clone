@@ -1,9 +1,6 @@
 {
   "graphs": {
         "deep_research": "./src/workflow.py:graph",
-        "react_agent": "./src_ver2/react_agent.py:agent",
-        "reflect_only": "./src_ver2/reflect_only.py:agent",
-        "corrective_rag": "./src_ver2/corrective_rag.py:agent",
         "index_graph": "./src_ver2/index_graph.py:graph",
         "retrieval_graph": "./src_ver2/retrieval_graph.py:graph"
   },

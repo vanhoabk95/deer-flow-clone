@@ -1,5 +1,4 @@
-# Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
-# SPDX-License-Identifier: MIT
+# phungvanhoa@lgdisplay.com
 
 from langgraph.graph import MessagesState
 
@@ -19,4 +18,4 @@ class State(MessagesState):
     current_plan: Plan | str = None
     final_report: str = ""
     auto_accepted_plan: bool = False
-
+    knowledge_base: list[str] = []

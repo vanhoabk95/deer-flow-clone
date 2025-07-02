@@ -23,10 +23,16 @@ export async function* chatStream(
   options: { abortSignal?: AbortSignal } = {},
 ) {
   try{
+    // Extract knowledge base IDs from resources
+    const knowledge_base = params.resources?.filter(resource => 
+      resource.uri?.startsWith('kb://')
+    ).map(resource => resource.uri.replace('kb://', '')) || [];
+    
     const stream = fetchStream(resolveServiceURL("chat/stream"), {
       body: JSON.stringify({
         messages: [{ role: "user", content: userMessage }],
         ...params,
+        knowledge_base,
       }),
       signal: options.abortSignal,
     });
