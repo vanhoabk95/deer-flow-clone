@@ -60,54 +60,54 @@ def planner_node(
     plan_iterations = state["plan_iterations"] if state.get("plan_iterations", 0) else 0
     messages = apply_prompt_template("planner", state, configurable)
 
-    if AGENT_LLM_MAP["planner"] == "basic":
-        llm = get_llm_by_type("basic").with_structured_output(
-            Plan,
-            method="json_mode",
-        )
-    else:
-        llm = get_llm_by_type(AGENT_LLM_MAP["planner"])
+    # if AGENT_LLM_MAP["planner"] == "basic":
+    #     llm = get_llm_by_type("basic").with_structured_output(
+    #         Plan,
+    #         method="json_mode",
+    #     )
+    # else:
+    llm = get_llm_by_type(AGENT_LLM_MAP["planner"])
 
     #if the plan iterations is greater than the max plan iterations, return the reporter node
-    if plan_iterations >= configurable.max_plan_iterations:
-        return Command(goto="reporter")
+    # if plan_iterations >= configurable.max_plan_iterations:
+    #     return Command(goto="reporter")
 
-    full_response = ""
-    if AGENT_LLM_MAP["planner"] == "basic":
-        response = llm.invoke(messages)
-        full_response = response.model_dump_json(indent=4, exclude_none=True)
-    else:
-        response = llm.stream(messages)
-        for chunk in response:
-            full_response += chunk.content
-    logger.debug(f"Current state messages: {state['messages']}")
-    logger.info(f"Planner response: {full_response}")
+    # full_response = ""
+    # if AGENT_LLM_MAP["planner"] == "basic":
+    #     response = llm.invoke(messages)
+    #     full_response = response.model_dump_json(indent=4, exclude_none=True)
+    # else:
+    #     response = llm.stream(messages)
+    #     for chunk in response:
+    #         full_response += chunk.content
+    # logger.debug(f"Current state messages: {state['messages']}")
+    # logger.info(f"Planner response: {full_response}")
 
-    try:
-        curr_plan = json.loads(repair_json_output(full_response))
-    except json.JSONDecodeError:
-        logger.warning("Planner response is not a valid JSON")
-        if plan_iterations > 0:
-            return Command(goto="reporter")
-        else:
-            return Command(goto="__end__")
-    if curr_plan.get("has_enough_context"):
-        logger.info("Planner response has enough context.")
-        new_plan = Plan.model_validate(curr_plan)
-        return Command(
-            update={
-                "messages": [AIMessage(content=full_response, name="planner")],
-                "current_plan": new_plan,
-            },
-            goto="reporter",
-        )
-    return Command(
-        update={
-            "messages": [AIMessage(content=full_response, name="planner")],
-            "current_plan": full_response,
-        },
-        goto="human_feedback",
-    )
+    # try:
+    #     curr_plan = json.loads(repair_json_output(full_response))
+    # except json.JSONDecodeError:
+    #     logger.warning("Planner response is not a valid JSON")
+    #     if plan_iterations > 0:
+    #         return Command(goto="reporter")
+    #     else:
+    #         return Command(goto="__end__")
+    # if curr_plan.get("has_enough_context"):
+    #     logger.info("Planner response has enough context.")
+    #     new_plan = Plan.model_validate(curr_plan)
+    #     return Command(
+    #         update={
+    #             "messages": [AIMessage(content=full_response, name="planner")],
+    #             "current_plan": new_plan,
+    #         },
+    #         goto="reporter",
+    #     )
+    # return Command(
+    #     update={
+    #         "messages": [AIMessage(content=full_response, name="planner")],
+    #         "current_plan": full_response,
+    #     },
+    #     goto="human_feedback",
+    # )
 
 
 def human_feedback_node(
@@ -161,7 +161,7 @@ def human_feedback_node(
         goto=goto,
     )
 
-# todo: This node is a simple node that response to the user or route to the planner node
+# This node is a simple node that response to the user or route to the planner node
 def coordinator_node(
     state: State, config: RunnableConfig
 ) -> Command[Literal["planner", "__end__"]]:
